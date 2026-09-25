@@ -2774,7 +2774,6 @@ details.method>summary:hover .plus {
   <div class="panel"><h3>Most-gifted games</h3><div class="legend spaced" id="gLegend"></div><div class="bars" id="gGames"></div></div>
   <div class="panel"><h3>Friends who got the most</h3><div class="bars" id="gFriends"></div></div>
  </div>
- <button class="more" id="giftsMore" hidden></button>
 </section>
 
 <section id="keys">
@@ -4404,7 +4403,7 @@ function renderReport(D, K, name0) {
     const s = D.skippedRows;
     warn.push(D.skipped === 1 ? `Left out 1 transaction charged in ${s[0].cur} (${s[0].name}, ${formatDate(s[0].date)}, ${s[0].cur} ${s[0].total.toLocaleString()}). Steam's history doesn't give an exchange rate, so it can't be added to your ${currency.cur} totals.` : `Left out ${D.skipped} transactions charged in ${D.skippedCur.join(', ')}. Steam's history doesn't give an exchange rate, so they can't be added to your ${currency.cur} totals.`);
   }
-  D.converted.forEach(c => warn.push(`${c.name} (${formatDate(c.date)}) was charged in ${c.origCur} (${c.origCur} ${c.orig.toLocaleString()}) and paid from your Steam Wallet, which took ${formatMoney(c.amt)}. That amount is used here.`));
+  // wallet-paid charges in another currency (D.converted) are converted silently: the wallet amount is exact
   $('#rwarn').textContent = warn.join(' ');
   $('#rwarn').hidden = !warn.length;
   // hero
@@ -4501,7 +4500,7 @@ function renderReport(D, K, name0) {
     } else {
       $('#gFriends').innerHTML = '<p class="vempty">Steam didn\'t list who received these gifts.</p>';
     }
-    expandableLists(giftLists, '#giftsMore', 8);
+    scrollableLists(giftLists, '#gifts .grid2', 10);
   }
   $('#bigSaves').innerHTML = D.bigSaves.length ? D.bigSaves.map(s => `<div class="save"><div class="l"><b>${escapeHtml(s.label)}</b><span>${formatDate(s.date)} · <span class="saved">saved ${escapeHtml(formatMoney0(s.saved))}</span></span></div>${discountBlock(s.orig, s.paid, 'sm')}</div>`).join('') : '<p style="color:var(--muted);margin:0">No discounted checkouts found.</p>';
   // top single purchases
@@ -4744,44 +4743,54 @@ function topGameRowHtml(g, index, extraClass, hoursCell) {
   </div>`;
 }
 // One card in the Hardware section.
-// Shows the first `limit` rows of each list, with one button for all of them. Expanded, each list shows every row
-// but only twice `limit` fit before it scrolls.
-function expandableLists(lists, buttonSel, limit) {
-  let expanded = false;
-  const button = $(buttonSel);
-  const longest = Math.max(...lists.map(l => l.items.length));
-  const draw = () => {
-    lists.forEach(({ sel, items, row }) => {
-      const box = $(sel);
-      box.innerHTML = (expanded ? items : items.slice(0, limit)).map(row).join('');
-      box.style.maxHeight = '';
-      box.classList.toggle('scrolls', expanded && items.length > limit * 2);
-    });
-    if (expanded) {
-      // Each list shows twice `limit` rows, then scrolls. Lists sit side by side, so they all end at the same line:
-      // the lowest point any of them reaches after its first 2 × limit rows.
-      const top = box => box.getBoundingClientRect().top;
-      const ends = lists.map(({ sel }) => {
-        const box = $(sel), cut = box.children[limit * 2];
-        return cut ? cut.getBoundingClientRect().top : box.getBoundingClientRect().bottom;
-      });
-      const bottom = Math.max(...ends);
-      lists.forEach(({ sel }) => {
-        const box = $(sel);
-        if (box.scrollHeight > bottom - top(box) + 1) {
-          box.style.maxHeight = (bottom - top(box)) + 'px';
-        }
-        box.classList.toggle('scrolls', box.scrollHeight > box.clientHeight + 1);
-      });
+// Side-by-side lists that show every row but scroll after about `limit` rows. The lists sit next to each other, so
+// they're cut at the same line: the lowest point any of them reaches after its first `limit` rows.
+let listFitObserver = null;
+function scrollableLists(lists, containerSel, limit) {
+  lists.forEach(({ sel, items, row }) => {
+    $(sel).innerHTML = items.map(row).join('');
+  });
+  const boxes = lists.map(({ sel }) => $(sel));
+  const fit = () => {
+    if (boxes.some(b => !b.clientWidth)) {
+      return; // not laid out yet (hidden); the observer calls this again once it has a size
     }
-    button.hidden = longest <= limit;
-    button.textContent = expanded ? 'Show fewer' : 'Show all';
+    boxes.forEach(b => {
+      b.style.maxHeight = '';
+      b.classList.remove('scrolls');
+    });
+    const top = b => b.getBoundingClientRect().top;
+    const ends = boxes.map(b => {
+      const cut = b.children[limit];
+      if (!cut) {
+        return b.getBoundingClientRect().bottom;
+      }
+      const r = cut.getBoundingClientRect();
+      return r.top + r.height / 2; // half of the next row peeks out, so it's clear the list scrolls
+    });
+    // on narrow screens the panels stack, so each list is cut after its own rows
+    const panelTop = b => (b.closest('.panel') || b).getBoundingClientRect().top;
+    const sideBySide = boxes.every(b => Math.abs(panelTop(b) - panelTop(boxes[0])) < 2);
+    boxes.forEach((b, i) => {
+      const bottom = sideBySide ? Math.max(...ends) : ends[i];
+      if (b.scrollHeight > bottom - top(b) + 1) {
+        b.style.maxHeight = (bottom - top(b)) + 'px';
+        b.classList.add('scrolls');
+      }
+    });
   };
-  button.onclick = () => {
-    expanded = !expanded;
-    draw();
-  };
-  draw();
+  if (listFitObserver) {
+    listFitObserver.disconnect();
+  }
+  let lastWidth = -1;
+  listFitObserver = new ResizeObserver(entries => {
+    const w = Math.round(entries[0].contentRect.width);
+    if (w !== lastWidth) { // only width changes re-flow the rows; ignore the height changes fit() itself causes
+      lastWidth = w;
+      fit();
+    }
+  });
+  listFitObserver.observe($(containerSel));
 }
 function hardwareCardHtml(h, hardwareTotal) {
   const notes = [];
