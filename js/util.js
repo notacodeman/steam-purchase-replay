@@ -193,10 +193,12 @@ const stripEditionSuffix = s => s
 // Region and packaging tags Steam puts in license names.
 const PACKAGE_TAGS = /\((?:RoW|ROW|ROW Key|WW|WW ex CN|Key-Only WW|Key-only WW|Key-Only Everywhere except CN|NA|NA \+ ROW|Global|Retail- Global|Rest of World|Digital Retail|Post Preorder|Post-launch|Post-Launch|Promotion\/Event Package|event package|Win64|US)\)|\[(?:DIGITAL RETAIL|Digital)\]/g;
 
-// A license name as a person would write it: "Portal 2 (RoW) Retail" → "Portal 2".
+// A license name as a person would write it: "Portal 2 (RoW) Retail" → "Portal 2",
+// "Mafia Limited Free Promotional Package - Sep 2022" → "Mafia".
 function cleanLicenseName(name) {
   let s = name
     .replace(/^DO NOT USE - /, '')
+    .replace(/\s+Limited Free Promotional Package - [A-Za-z]{3} \d{4}$/, '')
     .replace(PACKAGE_TAGS, '')
     .replace(/\s+(?:ESD|PROMO|Steam Store and Retail Key)\b/g, '')
     .replace(/\s+Retail\s+(?:WW|Activation)$/, ' Retail');

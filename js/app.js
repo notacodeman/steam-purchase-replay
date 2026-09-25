@@ -2,9 +2,9 @@
 
 // ---------- building a report ----------
 
-// historyRows, licenseRows and gamesPage are parsed pages (see parse.js); priceEdits and keyPurchases are the
-// visitor's own additions.
-function runReport({ historyRows, licenseRows, gamesPage, accountName, isExample = false, priceEdits = null, keyPurchases = null }) {
+// historyRows, licenseRows and gamesPage are parsed pages (see parse.js); priceEdits, keyPurchases and gameLinks are
+// the visitor's own additions.
+function runReport({ historyRows, licenseRows, gamesPage, accountName, isExample = false, priceEdits = null, keyPurchases = null, gameLinks = null }) {
   let history;
   try {
     history = analyzeHistory(historyRows, gamesPage);
@@ -17,14 +17,14 @@ function runReport({ historyRows, licenseRows, gamesPage, accountName, isExample
   let playtime = null;
   if (gamesPage && gamesPage.games && gamesPage.games.length) {
     try {
-      playtime = analyzePlaytime(gamesPage, history.rows, licenses && licenses.list, keyPurchases, priceEdits);
+      playtime = analyzePlaytime(gamesPage, history.rows, licenses && licenses.list, { keyPurchases, priceEdits, gameLinks });
     } catch (e) {
       console.error(e);
     }
   }
   Object.assign(report, {
     historyRows, licenseRows: licenseRows || [], gamesPage: gamesPage || null, accountName, isExample,
-    history, licenses, playtime, priceEdits: priceEdits || null, keyPurchases: keyPurchases || null,
+    history, licenses, playtime, priceEdits: priceEdits || null, keyPurchases: keyPurchases || null, gameLinks: gameLinks || null,
   });
   $('#intro').hidden = true;
   $('#report').hidden = false;
@@ -39,7 +39,7 @@ function runReport({ historyRows, licenseRows, gamesPage, accountName, isExample
 // The same, from what's stored in the browser or embedded in a downloaded report.
 const runSavedReport = (saved, overrides = {}) => runReport({
   historyRows: saved.h, licenseRows: saved.l, gamesPage: saved.p || null, accountName: saved.name,
-  isExample: !!saved.example, priceEdits: saved.ov || null, keyPurchases: saved.kp || null, ...overrides,
+  isExample: !!saved.example, priceEdits: saved.ov || null, keyPurchases: saved.kp || null, gameLinks: saved.gl || null, ...overrides,
 });
 
 function showUploadScreen() {
@@ -136,6 +136,7 @@ function buildFromUploads() {
     accountName,
     priceEdits: saved && saved.ov,
     keyPurchases: saved && saved.kp,
+    gameLinks: saved && saved.gl,
   });
 }
 
@@ -266,7 +267,7 @@ function openDownloadedReport() {
     embeddedStamp = data.stamp || null;
     const saved = loadState();
     const edits = saved && saved.edited && data.stamp && saved.basedOn === embeddedStamp ? saved : null;
-    runSavedReport(data, edits ? { keyPurchases: edits.kp || data.kp || null, priceEdits: edits.ov || data.ov || null } : {});
+    runSavedReport(data, edits ? { keyPurchases: edits.kp || data.kp || null, priceEdits: edits.ov || data.ov || null, gameLinks: edits.gl || data.gl || null } : {});
     $('#savedNote').textContent = `Saved report from ${formatDate(data.saved)}.`;
     $('#savedNote').hidden = false;
   } catch (e) {

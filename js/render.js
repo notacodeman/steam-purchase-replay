@@ -12,6 +12,7 @@ const report = {
   playtime: null, // analyzePlaytime()
   priceEdits: null, // prices typed in by the visitor (see prices.js)
   keyPurchases: null, // 3rd-party purchases (see purchases.js)
+  gameLinks: null, // app id → the license ("date|name") the visitor matched a game to by hand
 };
 let hideNames = false;
 

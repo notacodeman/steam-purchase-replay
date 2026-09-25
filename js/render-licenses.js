@@ -103,6 +103,20 @@ function renderLicenseTable(licenses) {
     };
   }
 
+  // games on the games page that couldn't be tied to one license; listed after the licenses so they can be matched
+  const unmatched = report.playtime ? report.playtime.unmatched : [];
+  $('#kUnmatched').hidden = !unmatched.length;
+  if (unmatched.length) {
+    $('#kUnmatched').innerHTML = `<b>${unmatched.length.toLocaleString()}</b> ${unmatched.length === 1 ? 'game' : 'games'} on your games page couldn't be matched to a single license, so ${unmatched.length === 1 ? 'it isn\'t' : 'they aren\'t'} in the never-played figures. They're listed at the end; use Edit to pick the license each came from. <button class="linkbtn" type="button" id="kUnmatchedGo">Show only these</button>`;
+    $('#kUnmatchedGo').onclick = () => {
+      $('#ks').value = 'unmatched';
+      $('#ks').onchange();
+    };
+  }
+  const handMatched = report.playtime ? report.playtime.handMatched : [];
+  $('#ksUm').hidden = !unmatched.length && !handMatched.length;
+  const entries = [...list.map((license, index) => ({ license, index })), ...[...unmatched, ...handMatched].map(game => ({ game }))];
+
   $('#ky').innerHTML = '<option value="">All years</option>' + [...licenses.years].reverse().map(y => `<option>${y}</option>`).join('');
   $('#ksKp').hidden = !ordersOf(report.keyPurchases).length;
   // without licenses pages keys, free games and gifts are one group
@@ -120,19 +134,27 @@ function renderLicenseTable(licenses) {
     const query = $('#kq').value.trim().toLowerCase();
     const year = $('#ky').value;
     const source = $('#ks').value;
-    const matchesSource = (license, i) => !source
-      || (source === 'purchased' ? purchased.has(i) : source === 'unaccounted' ? isUnaccounted(license, i) : license.source === source);
-    const matchesQuery = (license, i) => !query
-      || license.name.toLowerCase().includes(query)
-      || license.rawName.toLowerCase().includes(query)
-      || (purchased.has(i) && purchased.get(i).name.toLowerCase().includes(query));
-    const rows = list.map((license, i) => [license, i])
-      .filter(([license, i]) => (!year || license.date.startsWith(year)) && matchesSource(license, i) && matchesQuery(license, i));
+    const matchesSource = ({ license, index, game }) => {
+      if (!source) return true;
+      if (game) return source === 'unmatched';
+      if (source === 'purchased') return purchased.has(index);
+      if (source === 'unaccounted') return isUnaccounted(license, index);
+      return license.source === source;
+    };
+    const matchesQuery = ({ license, index, game }) => !query
+      || (game ? game.name.toLowerCase().includes(query)
+        : license.name.toLowerCase().includes(query)
+          || license.rawName.toLowerCase().includes(query)
+          || (purchased.has(index) && purchased.get(index).name.toLowerCase().includes(query)));
+    const inYear = ({ license }) => !year || (license && license.date.startsWith(year));
+    const rows = entries.filter(entry => inYear(entry) && matchesSource(entry) && matchesQuery(entry));
     matching = rows.length;
     $('#krows').innerHTML = rows.length
-      ? rows.slice(0, limit).map(([license, i]) => licenseRowHtml(license, i, licensePriceHtml(license, i, prices, purchased), purchased.get(i), isUnaccounted(license, i))).join('')
+      ? rows.slice(0, limit).map(({ license, index, game }) => game
+        ? unmatchedGameRowHtml(game)
+        : licenseRowHtml(license, index, licensePriceHtml(license, index, prices, purchased), purchased.get(index), isUnaccounted(license, index))).join('')
       : '<div class="kempty">Nothing matches. Try a shorter search or pick All years.</div>';
-    $('#kcnt').textContent = `${rows.length.toLocaleString()} of ${list.length.toLocaleString()}`;
+    $('#kcnt').textContent = `${rows.length.toLocaleString()} of ${entries.length.toLocaleString()}`;
     $('#kmore').hidden = rows.length <= PAGE_SIZE;
     $('#kmore').textContent = limit >= rows.length ? 'Show fewer' : `Show ${Math.min(100, rows.length - limit)} more`;
   };
@@ -161,6 +183,27 @@ function licenseRowHtml(license, index, priceHtml, keyPurchase, unaccounted) {
     <div class="nm" role="cell" title="${escapeHtml(license.steamName)}">${escapeHtml(license.name)}${soldAs}<button class="oedit" data-lic="${index}" aria-label="Edit ${escapeHtml(license.name)}">Edit</button></div>
     <div class="pr" role="cell">${priceHtml}</div>
     <div class="sc" role="cell"><span class="src" title="${source.label}"><i style="background:${source.color}"></i><span>${source.label}</span></span></div>
+  </div>`;
+}
+
+// A game from the games page that wasn't tied to one license automatically: none has its name, or licenses from
+// different sources do (bought on Steam and also a key). Games the visitor matched by hand are listed too, so the
+// match can be changed.
+function unmatchedGameRowHtml(game) {
+  let label = 'No license found';
+  let title = 'No license on your account has this name, often because it came in a pack under another name. Use Edit to pick the license it came from.';
+  if (game.linked) {
+    label = 'Matched by you';
+    title = `You matched this to ${game.licenses[0]}.`;
+  } else if (game.licenses.length) {
+    label = 'Several licenses';
+    title = `Matches ${game.licenses.length} licenses from different sources: ${game.licenses.join(', ')}. Use Edit to pick the one it came from.`;
+  }
+  return `<div class="tr k${game.linked ? '' : ' unacc'}" role="row">
+    <div class="dt" role="cell">${muted('–')}</div>
+    <div class="nm" role="cell" title="${escapeHtml(game.name)}">${escapeHtml(game.name)}<button class="oedit" data-game="${game.id}" aria-label="Match ${escapeHtml(game.name)} to a license">Edit</button></div>
+    <div class="pr" role="cell">${withTitle(title, tag(label, game.linked ? '' : 'na'))}</div>
+    <div class="sc" role="cell"><span class="src" title="From your games page"><i style="background:${COLORS.muted}"></i><span>Games page</span></span></div>
   </div>`;
 }
 

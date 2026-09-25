@@ -5,7 +5,7 @@ function commitChanges(message) {
   report.keyPurchases = report.keyPurchases || { orders: [] };
   const scroll = scrollY;
   if (report.gamesPage) {
-    report.playtime = analyzePlaytime(report.gamesPage, report.history.rows, report.licenses && report.licenses.list, report.keyPurchases, report.priceEdits);
+    report.playtime = analyzePlaytime(report.gamesPage, report.history.rows, report.licenses && report.licenses.list, report);
   }
   renderReport();
   scrollTo(0, scroll);
@@ -264,6 +264,48 @@ function resetPrice() {
   commitChanges("Back to Steam's figure.");
 }
 
+// ---------- matching a game to a license ----------
+
+// For a game the automatic name matching couldn't tie to one license: pick the license it came from.
+let matchingGame = null;
+function openGameMatch(gameId) {
+  const playtime = report.playtime;
+  matchingGame = [...playtime.unmatched, ...playtime.handMatched].find(g => g.id === gameId);
+  if (!matchingGame) return;
+  $('#matchWhat').textContent = `Which license did ${matchingGame.name} come from? Its source then counts in the never-played figures.`;
+  $('#matchReset').hidden = !matchingGame.linked;
+  // a game with several matching licenses starts with those; otherwise search by its name
+  $('#matchSearch').value = matchingGame.licenses.length && !matchingGame.linked ? '' : matchingGame.name;
+  showLicenseMatches($('#matchSearch').value);
+  $('#matchDlg').showModal();
+}
+
+// Licenses containing every word of the query, or the game's own candidate licenses when the query is empty.
+function showLicenseMatches(query) {
+  const words = normalizeName(query).split(' ').filter(Boolean);
+  const list = report.licenses.list;
+  const hits = words.length
+    ? list.filter(l => words.every(w => (' ' + normalizeName(l.steamName) + ' ' + normalizeName(l.name) + ' ').includes(' ' + w)))
+    : list.filter(l => matchingGame.licenses.includes(l.name));
+  const box = $('#matchFound');
+  box.innerHTML = hits.slice(0, 15).map((license, i) =>
+    `<button type="button" class="kadd" data-i="${i}">${escapeHtml(license.name)} <span>${escapeHtml(LICENSE_SOURCES[license.source].label)} · ${formatDate(license.date)}</span></button>`).join('')
+    || '<p class="vempty">No license matches that. Try the name of a pack or bundle it came in.</p>';
+  box.querySelectorAll('.kadd').forEach(button => button.onclick = () => {
+    const license = hits[+button.dataset.i];
+    report.gameLinks = { ...report.gameLinks, [matchingGame.id]: license.date + '|' + license.steamName };
+    $('#matchDlg').close();
+    commitChanges(`Matched ${matchingGame.name} to ${license.name}.`);
+  });
+}
+
+function removeGameMatch() {
+  report.gameLinks = { ...report.gameLinks };
+  delete report.gameLinks[matchingGame.id];
+  $('#matchDlg').close();
+  commitChanges(`${matchingGame.name} is back to matching by name.`);
+}
+
 // ---------- spreadsheet import ----------
 
 // Header names accepted for each column.
@@ -513,7 +555,7 @@ function initForms() {
     }
   };
   $('#impGo').onclick = importPurchases;
-  $$('#impDlg .x, #buyDlg .x, #priceDlg .x').forEach(button => button.onclick = () => button.closest('dialog').close());
+  $$('#impDlg .x, #buyDlg .x, #priceDlg .x, #matchDlg .x').forEach(button => button.onclick = () => button.closest('dialog').close());
 
   const form = $('#buyForm');
   ['type', 'currency', 'date'].forEach(name => form.elements[name].addEventListener('change', () => {
@@ -531,9 +573,13 @@ function initForms() {
   $('#priceForm').onsubmit = savePrice;
   $('#priceReset').onclick = resetPrice;
   $('#krows').addEventListener('click', event => {
-    const button = event.target.closest('[data-lic]');
-    if (button) editLicense(+button.dataset.lic);
+    const license = event.target.closest('[data-lic]');
+    if (license) editLicense(+license.dataset.lic);
+    const game = event.target.closest('[data-game]');
+    if (game) openGameMatch(+game.dataset.game);
   });
+  $('#matchSearch').oninput = event => showLicenseMatches(event.target.value);
+  $('#matchReset').onclick = removeGameMatch;
   $('#kpRows').addEventListener('click', event => {
     const button = event.target.closest('[data-edit]');
     if (button) editOrder(button.dataset.edit);

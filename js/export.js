@@ -163,6 +163,7 @@ async function downloadReport() {
     l: report.licenseRows,
     p: gamesPage,
     ov: report.priceEdits || null,
+    gl: report.gameLinks || null,
     kp: keyPurchases || null,
     name,
     example: report.isExample,

@@ -167,7 +167,8 @@
   <div class="msg ok kpflash" id="kpFlash" role="status" hidden></div>
   <p class="kpct">Price paid is before tax, with the list price in brackets when it was on sale. Steam only records one total per checkout, so for items bought together the split is estimated (marked ≈) from each item's list price today. Add your games page for better estimates.</p>
   <p class="kpct" id="kUnacc" hidden></p>
-  <div class="kctl"><input id="kq" type="search" placeholder="Search by name" aria-label="Search your licenses"><select id="ks" aria-label="Filter by source"><option value="">All sources</option><option value="store">Bought on Steam</option><option value="key">Product keys</option><option value="free">Free</option><option value="gift">Gifts received</option><option value="beta">Betas and playtests</option><option value="other">Keys, free games and gifts</option><option value="purchased" id="ksKp" hidden>3rd-party key purchases</option><option value="unaccounted" id="ksNa" hidden>Unaccounted for</option></select><select id="ky" aria-label="Filter by year"></select><span class="cnt" id="kcnt"></span></div>
+  <p class="kpct" id="kUnmatched" hidden></p>
+  <div class="kctl"><input id="kq" type="search" placeholder="Search by name" aria-label="Search your licenses"><select id="ks" aria-label="Filter by source"><option value="">All sources</option><option value="store">Bought on Steam</option><option value="key">Product keys</option><option value="free">Free</option><option value="gift">Gifts received</option><option value="beta">Betas and playtests</option><option value="other">Keys, free games and gifts</option><option value="purchased" id="ksKp" hidden>3rd-party key purchases</option><option value="unaccounted" id="ksNa" hidden>Unaccounted for</option><option value="unmatched" id="ksUm" hidden>Games not matched automatically</option></select><select id="ky" aria-label="Filter by year"></select><span class="cnt" id="kcnt"></span></div>
   <div class="tbl" role="table" aria-label="Every license on your account">
    <div class="tr th k" role="row"><div role="columnheader">Added</div><div role="columnheader">Product</div><div role="columnheader" class="pr">Price paid (retail)</div><div role="columnheader">Source</div></div>
    <div id="krows"></div>
@@ -224,6 +225,13 @@
   <div class="ferr" id="priceErr" role="alert"></div>
   <div class="dlgbtns"><button class="more" type="submit">Save price</button><button class="tbtn" type="button" id="priceReset">Use Steam's figure</button></div>
  </form>
+</dialog>
+<dialog id="matchDlg" class="fdlg" aria-labelledby="matchH">
+ <div class="fh"><h2 id="matchH">Match a game to a license</h2><button type="button" class="x" aria-label="Close">×</button></div>
+ <p class="kpct" id="matchWhat"></p>
+ <input id="matchSearch" type="search" placeholder="Search your licenses, e.g. a pack it came in" aria-label="Search your licenses">
+ <div id="matchFound" class="kfound"></div>
+ <div class="dlgbtns"><button class="tbtn" type="button" id="matchReset" hidden>Remove the match</button></div>
 </dialog>
 <datalist id="storeList"><option>Humble Bundle</option><option>Fanatical</option><option>GG.deals</option><option>Green Man Gaming</option><option>Gamesplanet</option><option>Indie Gala</option><option>Digiphile</option><option>Loaded</option><option>GOG</option><option>Epic Games Store</option></datalist>
 <dialog id="impDlg" class="fdlg" aria-labelledby="impH">

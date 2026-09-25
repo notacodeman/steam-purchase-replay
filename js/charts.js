@@ -395,9 +395,10 @@ function buildLicensesPerYearChart(licenses) {
   });
 }
 
-// Cumulative licenses by source, month by month (betas left out, as in the totals).
+// Cumulative licenses by source, month by month (betas left out, as in the totals). Sources with no licenses are
+// left out, which without licenses pages leaves just "Bought on Steam".
 function buildLibraryGrowthChart(licenses) {
-  const sources = ['store', 'key', 'free', 'gift'];
+  const sources = ['store', 'key', 'free', 'gift'].filter(s => licenses.totals[s] > 0);
   const dated = licenses.list.filter(l => l.date && sources.includes(l.source));
   const months = [];
   // every month from the first license to the last, as "YYYY-MM" (the 15th plus 31 days is always next month)
@@ -416,13 +417,16 @@ function buildLibraryGrowthChart(licenses) {
   const halfway = months.findIndex((_, i) => sum(sources, s => running[s][i]) >= total / 2);
   // the last month keys were still at or behind store purchases
   let keysBehind = -1;
-  months.forEach((_, i) => {
-    if (running.key[i] <= running.store[i]) keysBehind = i;
-  });
+  if (running.key && running.store) {
+    months.forEach((_, i) => {
+      if (running.key[i] <= running.store[i]) keysBehind = i;
+    });
+  }
   $('#libNote').textContent = `${total.toLocaleString()} licenses by ${formatDate(licenses.last)}, not counting betas. These include DLC, soundtracks and other add-ons, so this is not a game count. You passed the halfway mark in ${formatMonth(months[halfway])}` +
     (keysBehind >= 0 && keysBehind < months.length - 1 ? `, and keys pulled ahead of store purchases for good in ${formatMonth(months[keysBehind + 1])}.` : '.');
 
-  // each source's final count, written to the right of its band and nudged apart so they don't overlap
+  // each source's final count, written to the right of its band, nudged apart so they don't overlap, and kept
+  // inside the canvas when thin bands at the top push the labels upwards
   const endLabels = {
     id: 'endLabels',
     afterDatasetsDraw(chart) {
@@ -441,12 +445,15 @@ function buildLibraryGrowthChart(licenses) {
           color: source === 'free' ? COLORS.freeText : LICENSE_SOURCES[source].color,
         });
       });
+      const LINE = 17;
       labels.sort((a, b) => b.y - a.y);
       let previous = Infinity;
       labels.forEach(label => {
-        if (label.y > previous - 17) label.y = previous - 17;
+        if (label.y > previous - LINE) label.y = previous - LINE;
         previous = label.y;
       });
+      const overflow = LINE / 2 - labels[labels.length - 1].y;
+      if (overflow > 0) labels.forEach(label => label.y += overflow);
       ctx.save();
       ctx.font = `600 13px ${FONT}`;
       ctx.textBaseline = 'middle';

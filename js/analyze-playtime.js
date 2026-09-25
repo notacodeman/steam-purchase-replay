@@ -15,7 +15,8 @@ function appKind(game, typed) {
   return typed ? 'delisted' : 'game';
 }
 
-function analyzePlaytime(gamesPage, historyRows, licenseList, keyPurchases, priceEdits) {
+// edits: the visitor's own additions { keyPurchases, priceEdits, gameLinks }
+function analyzePlaytime(gamesPage, historyRows, licenseList, { keyPurchases, priceEdits, gameLinks } = {}) {
   const all = gamesPage.games;
   const typed = isTypedGamesPage(gamesPage);
   all.forEach(g => g.k = appKind(g, typed));
@@ -51,7 +52,7 @@ function analyzePlaytime(gamesPage, historyRows, licenseList, keyPurchases, pric
       est: unplayed.some(r => r.est),
       top: unplayed.slice(0, 6),
     },
-    ...neverPlayedBySource(games, match, licenseList),
+    ...neverPlayedBySource(games, match, licenseList, gameLinks),
     perfect: withAchievements.filter(g => g.ach[0] >= g.ach[1]).length,
     achKnown: withAchievements.length,
   };
@@ -144,25 +145,37 @@ function gameCosts(games, match, historyRows, gamesPage, keyPurchases, priceEdit
   };
 }
 
-// For each source, how many of its games were never played. Only games that came from a single source count.
-function neverPlayedBySource(games, match, licenseList) {
-  if (!licenseList || !licenseList.length) return { bySrc: null, srcMatched: 0 };
-  const sources = new Map();
-  for (const license of licenseList) {
+// For each source, how many of its games were never played. Only games tied to exactly one source count; the rest
+// are listed in `unmatched` so they can be linked by hand, and games linked by hand in `handMatched`. gameLinks maps an app id to the license ("date|name") the
+// visitor picked for it, which overrides matching by name.
+function neverPlayedBySource(games, match, licenseList, gameLinks) {
+  if (!licenseList || !licenseList.length) return { bySrc: null, srcMatched: 0, unmatched: [], handMatched: [] };
+  const matchedLicenses = new Map(); // game id → indexes of the licenses whose name matches it
+  licenseList.forEach((license, index) => {
     const game = match(license.steamName, false) || match(license.name, false);
-    if (!game) continue;
-    if (!sources.has(game.id)) sources.set(game.id, new Set());
-    sources.get(game.id).add(license.source === 'beta' ? 'key' : license.source);
-  }
+    if (!game) return;
+    if (!matchedLicenses.has(game.id)) matchedLicenses.set(game.id, []);
+    matchedLicenses.get(game.id).push(index);
+  });
+  const sourceOf = license => license.source === 'beta' ? 'key' : license.source;
   const bySrc = { store: [0, 0], key: [0, 0], free: [0, 0], gift: [0, 0], other: [0, 0] };
+  const unmatched = [];
+  const handMatched = [];
   let srcMatched = 0;
   for (const game of games) {
-    const set = sources.get(game.id);
-    if (!set || set.size !== 1) continue;
-    const counts = bySrc[[...set][0]];
+    const link = gameLinks && gameLinks[game.id];
+    const linked = link && licenseList.find(l => l.date + '|' + l.steamName === link);
+    const licenses = (matchedLicenses.get(game.id) || []).map(i => licenseList[i]);
+    const sources = new Set(linked ? [sourceOf(linked)] : licenses.map(sourceOf));
+    if (linked) handMatched.push({ id: game.id, name: game.name, licenses: [linked.name], linked: true });
+    if (sources.size !== 1) {
+      unmatched.push({ id: game.id, name: game.name, min: game.min, licenses: licenses.map(l => l.name) });
+      continue;
+    }
+    const counts = bySrc[[...sources][0]];
     srcMatched++;
     counts[0]++;
     if (!game.min) counts[1]++;
   }
-  return { bySrc, srcMatched };
+  return { bySrc, srcMatched, unmatched, handMatched };
 }
