@@ -1630,6 +1630,21 @@ kbd {
   color: var(--sale-ink);
 }
 
+.subh {
+  margin: 18px 0 8px;
+  font-size: .95rem;
+  font-weight: 700;
+}
+
+.stdot {
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  border-radius: 2px;
+  margin-right: 8px;
+  vertical-align: 1px;
+}
+
 .vlist {
   display: grid;
   gap: 2px;
@@ -2762,7 +2777,7 @@ details.method>summary:hover .plus {
  <div class="panel gap-bottom"><h3>What's in your games list</h3><div class="gmix-wrap"><ul class="gmix" id="pMix"></ul><p class="kpct" id="pMixNote"></p></div></div>
  <div class="grid2">
   <div class="panel"><h3>Most played</h3><p class="kpct">Cost per hour uses the exact price where it's known. ≈ marks an estimate: a share of a multi-item checkout or bundle.</p><div class="vlist" id="pTop"></div></div>
-  <div class="panel"><h3>Never played</h3><div class="bars" id="pSrc"></div><p class="kpct note" id="pSrcNote"></p></div>
+  <div class="panel"><h3>Never played</h3><div class="bars" id="pSrc"></div><p class="kpct note" id="pSrcNote"></p><div id="pBack" hidden><h4 class="subh">Priciest games you've never played</h4><div class="vlist" id="pBackList"></div></div></div>
  </div>
  <div class="grid2 gap-top">
   <div class="panel vpanel"><h3>Best value per hour</h3><p class="kpct">Games you paid for and played at least an hour.<br>DLC bought separately counts towards its game; ≈ marks an estimated price.</p><div class="vlist" id="pBest"></div></div>
@@ -2773,6 +2788,10 @@ details.method>summary:hover .plus {
 <section id="months">
  <div class="sh"><h2>When you buy</h2><p id="monthLede"></p></div>
  <div class="panel"><div class="kscroll"><div class="ch short kch"><canvas id="cMonth" aria-label="Spending by month of year"></canvas></div></div></div>
+ <div class="grid2 gap-top" id="stWrap">
+  <div class="panel"><h3>During Steam's seasonal sales</h3><p class="kpct">Games, DLC and gifts, after refunds. In-game items, Market and hardware are left out.</p><div class="bars" id="stBars"></div><p class="kpct note" id="stNote"></p></div>
+  <div class="panel"><h3>Biggest sale hauls</h3><p class="kpct">The single seasonal sales you spent the most in.</p><div class="vlist" id="stTop"></div></div>
+ </div>
 </section>
 
 
@@ -3106,6 +3125,89 @@ function mergeRows(lists, key) {
 // ================= analysis: purchase history =================
 const CATEGORIES = ['Games and DLC for you', 'Gifts', 'In-game items', 'Market', 'Hardware'];
 const HARDWARE_PATTERN = /\b(Steam Deck|Steam Controller|Steam Link|Valve Index|Steam Frame|Steam Machine)\b/i;
+// Steam's store-wide seasonal sales, [start, last day] inclusive (sales end at 10am Pacific on the last day).
+// Sources: SteamDB's sale calendar and Valve's Steamworks docs (2023 on), prepareyourwallet.com and a Steam Community
+// sales history guide (earlier). The first store-wide seasonal sale was the 2006 Holiday Sale. No Spring Sale before 2023
+// could be confirmed, so none is listed.
+const STEAM_SALES = {
+  Winter: [['2006-12-23', '2007-01-04'], ['2007-12-24', '2008-01-01'], ['2008-12-26', '2009-01-02'], ['2009-12-23', '2010-01-03'], ['2010-12-20', '2011-01-02'],
+    ['2011-12-19', '2012-01-01'], ['2012-12-20', '2013-01-05'], ['2013-12-19', '2014-01-03'], ['2014-12-18', '2015-01-02'], ['2015-12-22', '2016-01-04'],
+    ['2016-12-22', '2017-01-02'], ['2017-12-21', '2018-01-04'], ['2018-12-20', '2019-01-03'], ['2019-12-19', '2020-01-02'], ['2020-12-22', '2021-01-05'],
+    ['2021-12-22', '2022-01-05'], ['2022-12-22', '2023-01-05'], ['2023-12-21', '2024-01-04'], ['2024-12-19', '2025-01-02'], ['2025-12-18', '2026-01-05'],
+    ['2026-12-17', '2027-01-04']],
+  Summer: [['2010-06-24', '2010-07-04'], ['2011-06-30', '2011-07-10'], ['2012-07-12', '2012-07-23'], ['2013-07-11', '2013-07-22'], ['2014-06-19', '2014-06-30'],
+    ['2015-06-11', '2015-06-22'], ['2016-06-23', '2016-07-04'], ['2017-06-22', '2017-07-05'], ['2018-06-21', '2018-07-05'], ['2019-06-25', '2019-07-09'],
+    ['2020-06-25', '2020-07-09'], ['2021-06-24', '2021-07-08'], ['2022-06-23', '2022-07-07'], ['2023-06-29', '2023-07-13'], ['2024-06-27', '2024-07-11'],
+    ['2025-06-26', '2025-07-10'], ['2026-06-25', '2026-07-09'], ['2027-06-24', '2027-07-08']],
+  Autumn: [['2011-11-23', '2011-11-27'], ['2012-11-21', '2012-11-26'], ['2013-11-27', '2013-12-03'], ['2014-11-26', '2014-12-02'], ['2015-11-25', '2015-12-01'],
+    ['2016-11-23', '2016-11-29'], ['2017-11-22', '2017-11-28'], ['2018-11-21', '2018-11-27'], ['2019-11-26', '2019-12-03'], ['2020-11-25', '2020-12-01'],
+    ['2021-11-24', '2021-12-01'], ['2022-11-22', '2022-11-29'], ['2023-11-21', '2023-11-28'], ['2024-11-27', '2024-12-04'], ['2025-09-29', '2025-10-06'],
+    ['2026-10-01', '2026-10-08']],
+  Spring: [['2023-03-16', '2023-03-23'], ['2024-03-14', '2024-03-21'], ['2025-03-13', '2025-03-20'], ['2026-03-19', '2026-03-26'], ['2027-03-18', '2027-03-25']]
+};
+// Last day the table above covers. Purchases after it are left out of the sale timing figures rather than counted as
+// "not in a sale". Add new sales above (Valve announces them months ahead) and move this date forward.
+const STEAM_SALES_KNOWN_UNTIL = '2027-07-08';
+// The seasonal sale a date falls in, as { type, name, key }, or null. A Winter Sale is named after the year it started in.
+function steamSaleOn(date) {
+  for (const [type, list] of Object.entries(STEAM_SALES)) {
+    const hit = list.find(([a, b]) => date >= a && date <= b);
+    if (hit) {
+      return { type, key: type + hit[0], name: `${type} Sale ${hit[0].slice(0, 4)}` };
+    }
+  }
+  return null;
+}
+// How much of a checkout is still spent after refunds of some of its items.
+function netOfRefunds(r) {
+  let amt = r.total;
+  r.refunded.forEach((done, k) => {
+    if (done) {
+      amt -= r.refAmt && r.refAmt[k] != null ? r.refAmt[k] : r.total / r.items.length;
+    }
+  });
+  (r.unnamedRef || []).forEach(v => amt -= v);
+  return Math.max(0, amt);
+}
+// Games, DLC and gifts bought during each seasonal sale vs. the rest of the time.
+function saleTiming(spend, first, last) {
+  const by = { Summer: 0, Winter: 0, Autumn: 0, Spring: 0, None: 0 }, events = new Map();
+  let total = 0, after = 0;
+  spend.forEach(r => {
+    if (r.cat !== CATEGORIES[0] && r.cat !== 'Gifts') {
+      return;
+    }
+    if (r.date > STEAM_SALES_KNOWN_UNTIL) {
+      after++;
+      return;
+    }
+    const amt = netOfRefunds(r);
+    if (amt <= HALF_CENT) {
+      return;
+    }
+    total += amt;
+    const s = steamSaleOn(r.date);
+    if (!s) {
+      by.None += amt;
+      return;
+    }
+    by[s.type] += amt;
+    const e = events.get(s.key) || { name: s.name, type: s.type, amt: 0, n: 0 };
+    e.amt += amt;
+    e.n++;
+    events.set(s.key, e);
+  });
+  // share of calendar days (between the first and last purchase) that fell inside a sale, as a baseline
+  let days = 0, saleDays = 0;
+  const lastKnown = last > STEAM_SALES_KNOWN_UNTIL ? STEAM_SALES_KNOWN_UNTIL : last;
+  for (let d = new Date(first + 'T12:00'), end = new Date(lastKnown + 'T12:00'); d <= end; d.setDate(d.getDate() + 1)) {
+    days++;
+    if (steamSaleOn(d.toISOString().slice(0, 10))) {
+      saleDays++;
+    }
+  }
+  return { total, by, top: [...events.values()].sort((a, b) => b.amt - a.amt).slice(0, 8), dayShare: days ? saleDays / days : 0, after };
+}
 function analyzeHistory(rows0, P) {
   const rows = [...rows0].sort((a, b) => a.date < b.date ? -1 : a.date > b.date ? 1 : 0);
   const cc = new Map();
@@ -3333,7 +3435,7 @@ function analyzeHistory(rows0, P) {
   const mb = R.filter(r => r.kind === 'mbuy'), ms = R.filter(r => r.kind === 'msell');
   const r2 = v => Math.round(v * 100) / 100;
   return {
-    rows: R, converted, money, skipped: skipped.length, skippedCur: [...new Set(skipped.map(r => r.cur))], skippedRows: skipped.map(r => ({ date: r.date, name: r.items[0]?.name || r.type, total: r.total, cur: r.cur })), first, last, years, cats: CATEGORIES, byYear: Object.fromEntries(CATEGORIES.map(c => [c, byYear[c].map(r2)])), catTotals, byMonth,
+    rows: R, converted, money, saleTiming: saleTiming(spend, first, last), skipped: skipped.length, skippedCur: [...new Set(skipped.map(r => r.cur))], skippedRows: skipped.map(r => ({ date: r.date, name: r.items[0]?.name || r.type, total: r.total, cur: r.cur })), first, last, years, cats: CATEGORIES, byYear: Object.fromEntries(CATEGORIES.map(c => [c, byYear[c].map(r2)])), catTotals, byMonth,
     netByYear: years.map((_, i) => CATEGORIES.reduce((a, c) => a + byYear[c][i], 0)), listByYear, paidByYear, payment: pay,
     discBuckets: { labels: bl, count: bc, spent: bs }, bigSaves, top50: top, hardware, topGifted, topRecipients,
     totals: {
@@ -3739,6 +3841,9 @@ function analyzePlaytime(P, H, L, kp, ov) {
   const priced = G.filter(g => spent.get(g.id) > 0 && hasBase.has(g.id));
   const best = priced.filter(g => g.min >= 60).map(row).sort((a, b) => a.spent / a.h - b.spent / b.h).slice(0, 8);
   const worst = priced.filter(g => g.min < 60).map(row).sort((a, b) => b.spent - a.spent).slice(0, 8);
+  // backlog: what was paid for games with no playtime at all
+  const unplayed = priced.filter(g => !g.min).map(row).sort((a, b) => b.spent - a.spent);
+  const backlog = { n: unplayed.length, total: unplayed.reduce((a, r) => a + r.spent, 0), est: unplayed.some(r => r.est), top: unplayed.slice(0, 6) };
   let bySrc = null, srcMatched = 0;
   if (L && L.length) {
     const src = new Map();
@@ -3772,7 +3877,7 @@ function analyzePlaytime(P, H, L, kp, ov) {
   const achKnown = G.filter(g => g.ach && g.ach[1] > 0), perfect = achKnown.filter(g => g.ach[0] >= g.ach[1]).length;
   const allMin = ALL.reduce((a, g) => a + g.min, 0);
   return {
-    mix, typed, listCount: ALL.length, games: G.length, otherHours: (allMin - tot) / 60, count: G.length, hours: tot / 60, played, never: G.length - played, top, best, worst, bySrc, srcMatched, perfect, achKnown: achKnown.length, pricedGames: priced.length
+    mix, typed, listCount: ALL.length, games: G.length, otherHours: (allMin - tot) / 60, count: G.length, hours: tot / 60, played, never: G.length - played, top, best, worst, backlog, bySrc, srcMatched, perfect, achKnown: achKnown.length, pricedGames: priced.length
   };
 }
 const formatHours = h => h <= 0 ? 'never' : h >= 100 ? Math.round(h).toLocaleString() + ' h' : h >= 1 ? h.toFixed(1) + ' h' : Math.round(h * 60) + ' min';
@@ -3806,6 +3911,9 @@ function renderPlay(PL, D) {
   const tiles = [
     [PL.games.toLocaleString(), 'games on your account', '#66c0f4'], [Math.round(PL.hours).toLocaleString(), 'hours played', '#66c0f4'], [Math.round(PL.never / PL.count * 100) + '%', `never played (${PL.never.toLocaleString()} games)`, '#e8b64a'], [formatMoney(perH), 'per hour played, overall', '#beee11']
   ];
+  if (PL.backlog.n) {
+    tiles.splice(3, 0, [(PL.backlog.est ? '≈ ' : '') + formatMoney0(PL.backlog.total), `spent on ${pluralize(PL.backlog.n, 'game')} you've never played`, '#e8b64a']);
+  }
   if (PL.achKnown) {
     tiles.push([PL.perfect.toLocaleString(), 'games with every achievement', '#b69cff']);
   }
@@ -3832,6 +3940,8 @@ function renderPlay(PL, D) {
   };
   $('#pTop').innerHTML = PL.top.map(r => vrow(r, perHour(r))).join('');
   $('#pBest').innerHTML = PL.best.length ? PL.best.map(r => vrow(r, `${approx(r)}${escapeHtml(formatMoney(r.spent))} · <b>${escapeHtml(formatMoney(r.spent / r.h))}</b>/h`)).join('') : '<p class="vempty">No purchases matched to played games.</p>';
+  $('#pBack').hidden = !PL.backlog.n;
+  $('#pBackList').innerHTML = PL.backlog.top.map(r => vrow(r, `${approx(r)}<b>${escapeHtml(formatMoney(r.spent))}</b>`).replace(/<span class="h">[^<]*<\/span>/, '<span class="h"></span>')).join('');
   $('#pWorst').innerHTML = PL.worst.length ? PL.worst.map(r => vrow(r, approx(r) + escapeHtml(formatMoney(r.spent)))).join('') : '<p class="vempty">Nothing you paid for sits under an hour. Nice.</p>';
   if (PL.bySrc) {
     const S = [
@@ -4466,6 +4576,28 @@ function renderReport(D, K, name0) {
   $('#saveCall').innerHTML = `<b>${escapeHtml(formatMoney0(T.saved))}</b><span>saved compared to list prices${T.saved > T.paidPreTax ? '. The discount tags added up to more than you actually spent.' : '.'}</span>`;
   const mOrder = D.byMonth.map((v, i) => [v, i]).sort((a, b) => b[0] - a[0]);
   setLede('#monthLede', [`All years combined${T.hardware > 0 ? ', hardware excluded' : ''}.`, `${MONTH_NAMES[mOrder[0][1]]} leads at ${formatMoney0(mOrder[0][0])}, then ${MONTH_NAMES[mOrder[1][1]]} at ${formatMoney0(mOrder[1][0])}. ${MONTH_NAMES[mOrder[11][1]]} is your quietest month.`]);
+
+  // seasonal sale timing
+  {
+    const ST = D.saleTiming, SC = { Summer: '#e8b64a', Winter: '#66c0f4', Autumn: '#b69cff', Spring: '#beee11', None: '#6b7a88' };
+    $('#stWrap').hidden = !(ST && ST.total > HALF_CENT);
+    if (!$('#stWrap').hidden) {
+      const kinds = [['Summer', 'Summer Sale'], ['Winter', 'Winter Sale'], ['Autumn', 'Autumn Sale'], ['Spring', 'Spring Sale'], ['None', 'Any other time']].filter(([k]) => ST.by[k] > HALF_CENT || k === 'None');
+      const mx = Math.max(...kinds.map(([k]) => ST.by[k]));
+      $('#stBars').innerHTML = kinds.map(([k, label]) => {
+        const v = ST.by[k], p = v / ST.total * 100;
+        return `<div class="bar"><span>${label}</span><div class="trk"><div class="fl" style="width:${(v / mx * 100).toFixed(1)}%;background:${SC[k]}"></div></div><span class="v">${escapeHtml(formatMoney0(v))} · ${Math.round(p)}%</span></div>`;
+      }).join('');
+      const inSale = ST.total - ST.by.None, share = Math.round(inSale / ST.total * 100), dayShare = Math.round(ST.dayShare * 100);
+      $('#stNote').textContent = `${share}% of this spending landed in a seasonal sale, though those sales covered only ${dayShare}% of the days between your first and last purchase.` +
+        (share > dayShare * 1.5 ? ' You wait for the big sales.' : share < dayShare ? ' You mostly buy whenever something catches your eye.' : '') +
+        ' Sale dates are matched by day, so a purchase on the first morning before the sale went live still counts.' +
+        (ST.after ? ` ${pluralize(ST.after, 'purchase')} after ${formatDate(STEAM_SALES_KNOWN_UNTIL)} ${ST.after === 1 ? 'is' : 'are'} left out, because this page doesn't know Steam's sale dates past then yet.` : '');
+      $('#stTop').innerHTML = ST.top.length
+        ? ST.top.map(e => `<div class="vrow"><span class="n"><i class="stdot" style="background:${SC[e.type]}"></i>${escapeHtml(e.name)}</span><span class="h">${pluralize(e.n, 'checkout')}</span><span class="c"><b>${escapeHtml(formatMoney(e.amt))}</b></span></div>`).join('')
+        : '<p class="vempty">Nothing bought during a seasonal sale.</p>';
+    }
+  }
   // hardware
   setSectionVisible('hardware', D.hardware.length > 0);
   if (D.hardware.length) {
