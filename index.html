@@ -887,6 +887,19 @@ footer {
   color: var(--muted);
 }
 
+/* a key with no purchase behind it: not in the purchase history and not linked to a 3rd-party purchase */
+.tr.k.unacc {
+  background: rgba(232,182,74,.07);
+  box-shadow: inset 3px 0 0 #e8b64a;
+}
+
+.tp.na {
+  color: var(--muted);
+  border-style: dashed;
+  border-color: rgba(143,152,160,.55);
+  font-weight: 400;
+}
+
 .tr.k .pr {
   padding: 4px 0;
 }
@@ -2802,7 +2815,8 @@ details.method>summary:hover .plus {
   <div class="kphead"><h3>Every license on your account</h3><div class="kpbtns"><button class="tbtn" id="kpAdd">+ Add a purchase</button><button class="tbtn" id="kpImport">Import spreadsheet</button></div></div>
   <div class="msg ok kpflash" id="kpFlash" role="status" hidden></div>
   <p class="kpct">Price paid is before tax, with the list price in brackets when it was on sale. Steam only records one total per checkout, so for items bought together the split is estimated (marked ≈) from each item's list price today. Add your games page for better estimates.</p>
-  <div class="kctl"><input id="kq" type="search" placeholder="Search by name" aria-label="Search your licenses"><select id="ks" aria-label="Filter by source"><option value="">All sources</option><option value="s">Bought on Steam</option><option value="k">Product keys</option><option value="f">Free</option><option value="g">Gifts received</option><option value="b">Betas and playtests</option><option value="u">Keys, free games and gifts</option><option value="kp" id="ksKp" hidden>3rd-party key purchases</option></select><select id="ky" aria-label="Filter by year"></select><span class="cnt" id="kcnt"></span></div>
+  <p class="kpct" id="kUnacc" hidden></p>
+  <div class="kctl"><input id="kq" type="search" placeholder="Search by name" aria-label="Search your licenses"><select id="ks" aria-label="Filter by source"><option value="">All sources</option><option value="s">Bought on Steam</option><option value="k">Product keys</option><option value="f">Free</option><option value="g">Gifts received</option><option value="b">Betas and playtests</option><option value="u">Keys, free games and gifts</option><option value="kp" id="ksKp" hidden>3rd-party key purchases</option><option value="na" id="ksNa" hidden>Unaccounted for</option></select><select id="ky" aria-label="Filter by year"></select><span class="cnt" id="kcnt"></span></div>
   <div class="tbl" role="table" aria-label="Every license on your account">
    <div class="tr th k" role="row"><div role="columnheader">Added</div><div role="columnheader">Product</div><div role="columnheader" class="pr">Price paid (retail)</div><div role="columnheader">Source</div></div>
    <div id="krows"></div>
@@ -4985,14 +4999,14 @@ const SOURCE_LABELS = {
   u: ['Key, free or gift', '#8f98a0'],
 };
 // One row of the "Every license on your account" table.
-function licenseRowHtml(r, priceHtml, keyPurchase, index) {
+function licenseRowHtml(r, priceHtml, keyPurchase, index, unaccounted) {
   const [date, name, rawName, source] = r;
   const [sourceLabel, sourceColor] = SOURCE_LABELS[source];
   // a license named in another script (e.g. Chinese) also shows the name the key was sold under
   const altName = keyPurchase && normalizeName(keyPurchase.name) !== normalizeName(name) && !/[a-z]/i.test(name)
     ? ` <span class="pz">(${escapeHtml(keyPurchase.name)})</span>`
     : '';
-  return `<div class="tr k" role="row">
+  return `<div class="tr k${unaccounted ? ' unacc' : ''}" role="row">
     <div class="dt" role="cell">${formatDate(date)}</div>
     <div class="nm" role="cell" title="${escapeHtml(rawName || name)}">${escapeHtml(name)}${altName}<button class="oedit" data-lic="${index}" aria-label="Edit ${escapeHtml(name)}">Edit</button></div>
     <div class="pr" role="cell">${priceHtml}</div>
@@ -5036,6 +5050,20 @@ function renderKeys(K) {
   }
   const L = K.list, LP = licensePrices(K, report.D && report.D.rows, report.p, report.ov);
   const KPM = keyPurchaseMap(K, report.kp);
+  // keys (or, without licenses pages, anything not bought on Steam) with no purchase behind them anywhere
+  const isUnacc = (r, i) => (r[3] === 'k' || r[3] === 'u') && !KPM.has(i);
+  const nUnacc = L.reduce((a, r, i) => a + (isUnacc(r, i) ? 1 : 0), 0);
+  $('#ksNa').hidden = !nUnacc;
+  $('#kUnacc').hidden = !nUnacc;
+  if (nUnacc) {
+    $('#kUnacc').innerHTML = `<b>${nUnacc.toLocaleString()}</b> ${nUnacc === 1 ? 'license isn\'t' : 'licenses aren\'t'} in your purchase history or linked to a 3rd-party purchase: ` +
+      (K.synthetic ? 'keys, free games or gifts' : 'keys bought elsewhere or given to you') +
+      '. They\'re highlighted below; add a purchase to account for one. <button class="linkbtn" type="button" id="kUnaccGo">Show only these</button>';
+    $('#kUnaccGo').onclick = () => {
+      $('#ks').value = 'na';
+      $('#ks').onchange();
+    };
+  }
   const priceCell = (r, i) => {
     if (r[3] === 'f') {
       return '<span class="pz">Free</span>';
@@ -5043,7 +5071,8 @@ function renderKeys(K) {
     if (r[3] === 'k' || r[3] === 'u') {
       const q = KPM.get(i);
       if (!q) {
-        return r[3] === 'k' ? '<span class="pz">Key</span>' : '<span class="pz">–</span>';
+        const tip = 'Not in your purchase history and not linked to a 3rd-party purchase. Use Edit to add where it came from.';
+        return `<span title="${tip}">${r[3] === 'k' ? '<span class="pz">Key</span>' : '<span class="pz">–</span>'}<span class="tp na">Unaccounted</span></span>`;
       }
       if (q.order.notSteam) {
         return `<span title="From ${escapeHtml(q.order.bundle || 'a non-game bundle')} (${escapeHtml(formatMoney(q.order.total))}), which isn't counted in game totals."><span class="pz">≈ ${escapeHtml(formatMoney(q.paid))} · ${escapeHtml(q.order.notSteam.toLowerCase())}</span></span>`;
@@ -5088,11 +5117,11 @@ function renderKeys(K) {
   let lim = 25, nF = 0;
   const draw = () => {
     const q = $('#kq').value.trim().toLowerCase(), y = $('#ky').value, sv = $('#ks').value;
-    const f = L.map((r, i) => [r, i]).filter(([r, i]) => (!y || r[0].startsWith(y)) && (!sv || (sv === 'kp' ? KPM.has(i) : r[3] === sv)) && (!q || r[1].toLowerCase().includes(q) || (r[2] && r[2].toLowerCase().includes(q)) || (KPM.has(i) && KPM.get(i).name.toLowerCase().includes(q))));
+    const f = L.map((r, i) => [r, i]).filter(([r, i]) => (!y || r[0].startsWith(y)) && (!sv || (sv === 'kp' ? KPM.has(i) : sv === 'na' ? isUnacc(r, i) : r[3] === sv)) && (!q || r[1].toLowerCase().includes(q) || (r[2] && r[2].toLowerCase().includes(q)) || (KPM.has(i) && KPM.get(i).name.toLowerCase().includes(q))));
     nF = f.length;
     const sh = f.slice(0, lim);
     $('#krows').innerHTML = sh.length
-      ? sh.map(([r, i]) => licenseRowHtml(r, priceCell(r, i), KPM.get(i), i)).join('')
+      ? sh.map(([r, i]) => licenseRowHtml(r, priceCell(r, i), KPM.get(i), i, isUnacc(r, i))).join('')
       : '<div class="kempty">Nothing matches. Try a shorter search or pick All years.</div>';
     $('#kcnt').textContent = `${f.length.toLocaleString()} of ${L.length.toLocaleString()}`;
     const b = $('#kmore');
