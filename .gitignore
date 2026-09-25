@@ -1,0 +1,5 @@
+# Reports downloaded from the site contain someone's real purchase data
+steam-replay-*.html
+
+.DS_Store
+Thumbs.db
