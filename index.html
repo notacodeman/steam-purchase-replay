@@ -2669,7 +2669,7 @@ details.method>summary:hover .plus {
   <p class="lead">Save a couple of pages from your Steam account, drop them here, and get a breakdown of every purchase, sale, gift and key since you signed up.</p>
   <ol class="steps">
    <li><div><b>Save your purchase history</b><p>Open <a href="https://store.steampowered.com/account/history/" target="_blank" rel="noopener">store.steampowered.com/account/history</a> while signed in. Scroll to the bottom and click <b>Load more transactions</b> until the button goes away. Then press <kbd>Ctrl</kbd>+<kbd>S</kbd> (<kbd>⌘</kbd>+<kbd>S</kbd> on a Mac) and save it as <b>Webpage, Complete</b>.</p></div></li>
-   <li><div><b>Save your licenses</b> <span class="opt">optional, adds product keys and license history</span><p>Open <a href="https://store.steampowered.com/account/licenses/" target="_blank" rel="noopener">store.steampowered.com/account/licenses</a> and save it the same way.</p></div></li>
+   <li><div><b>Save your licenses</b> <span class="opt">optional, adds product keys, free games and gifts with their dates</span><p>Open <a href="https://store.steampowered.com/account/licenses/" target="_blank" rel="noopener">store.steampowered.com/account/licenses</a> and save it the same way. Steam splits your licenses into pages of about 100, so save every page (use the page numbers at the bottom) and drop them all in together.</p></div></li>
    <li><div><b>Save your games page</b> <span class="opt">optional, adds your real game count and playtime</span><p>Open <a href="https://steamcommunity.com/my/games/?tab=all" target="_blank" rel="noopener">steamcommunity.com/my/games</a>, wait for the list to finish loading, and save it the same way. That saved page also contains a short-lived sign-in token from Steam. This page never reads or sends it anywhere, but don't share that file with anyone.</p></div></li>
    <li><div><b>Drop the .html files here</b><p>Only the .html files are needed; the folders saved next to them can be ignored. Steam needs to be set to English.</p></div></li>
   </ol>
@@ -2781,16 +2781,15 @@ details.method>summary:hover .plus {
  <div class="sh"><h2>Licenses and keys</h2><p id="keyLede"></p></div>
  <div class="ktop" id="kTiles"></div>
  <p class="kpct lnote" id="kLicNote"></p>
- <div class="panel"><h3>Licenses added per year, by source</h3><div class="chips" id="lgKeys" role="group" aria-label="Show sources"></div><p class="kpct">Percentages under each year are shares of that year's licenses for the sources switched on.<br>Turn off Free and Gifts received to compare Steam and keys head to head.</p><div class="kscroll"><div class="ch tall kch"><canvas id="cKeys" aria-label="Library additions per year by source: Steam Store, product keys, free, gifts received"></canvas></div></div></div>
+ <div class="panel"><h3>Licenses added per year, by source</h3><div class="chips" id="lgKeys" role="group" aria-label="Show sources"></div><p class="kpct" id="keysYearHelp">Percentages under each year are shares of that year's licenses for the sources switched on.<br>Turn off Free and Gifts received to compare Steam and keys head to head.</p><div class="kscroll"><div class="ch tall kch"><canvas id="cKeys" aria-label="Library additions per year by source: Steam Store, product keys, free, gifts received"></canvas></div></div></div>
  <div class="panel gap-top"><h3>Licenses on your account over time</h3><p class="kpct" id="libNote"></p><div class="ch"><canvas id="cLib" aria-label="Cumulative number of licenses on your account by source"></canvas></div></div>
  <div class="grid2 gap-top">
-  <div class="panel"><h3>Keys vs. store purchases by month</h3><div class="legend"><span><i style="background:#e8b64a"></i>Keys activated</span><span><i style="background:#66c0f4"></i>Bought on Steam</span></div><div class="kscroll"><div class="ch short kch narrow"><canvas id="cKeyMonth" aria-label="Key activations and store licenses by month of year"></canvas></div></div><p class="kpct note" id="kMonthNote"></p></div>
+  <div class="panel"><h3 id="keyMonthTitle">Keys vs. store purchases by month</h3><div class="legend" id="keyMonthLegend"><span><i style="background:#e8b64a"></i>Keys activated</span><span><i style="background:#66c0f4"></i>Bought on Steam</span></div><div class="kscroll"><div class="ch short kch narrow"><canvas id="cKeyMonth" aria-label="Key activations and store licenses by month of year"></canvas></div></div><p class="kpct note" id="kMonthNote"></p></div>
   <div class="panel"><h3>Biggest redemption days</h3><div class="sprees" id="sprees"></div></div>
  </div>
  <div class="panel gap-top" id="kpPanel" hidden>
-  <div class="kphead"><h3>3rd-party key purchases</h3><div class="kpbtns"><button class="tbtn" id="kpAdd">+ Add a purchase</button><button class="tbtn" id="kpImport">Import spreadsheet</button></div></div>
-  <div class="msg ok kpflash" id="kpFlash" role="status" hidden></div>
-  <p class="kpct" id="kpEmpty" hidden>Bought keys from Humble, Fanatical, GG.deals or other stores? Add them here and they'll be linked to the keys on your account and added to your totals. Everything you enter is saved in this browser only.</p>
+  <h3>3rd-party key purchases</h3>
+  <p class="kpct" id="kpEmpty" hidden>Bought keys from Humble, Fanatical, GG.deals or other stores? Use <b>+ Add a purchase</b> or <b>Import spreadsheet</b> above the license list below, and they'll be linked to the keys on your account and added to your totals. Everything you enter is saved in this browser only.</p>
   <div class="kpsug" id="kpSuggest" hidden></div>
   <div class="kpnote" id="kpNote"></div>
   <div class="kpsum" id="kpSum"></div>
@@ -2801,9 +2800,10 @@ details.method>summary:hover .plus {
   <button class="more" id="kpMore" hidden></button>
  </div>
  <div class="panel gap-top">
-  <h3>Every license on your account</h3>
+  <div class="kphead"><h3>Every license on your account</h3><div class="kpbtns"><button class="tbtn" id="kpAdd">+ Add a purchase</button><button class="tbtn" id="kpImport">Import spreadsheet</button></div></div>
+  <div class="msg ok kpflash" id="kpFlash" role="status" hidden></div>
   <p class="kpct">Price paid is before tax, with the list price in brackets when it was on sale. Steam only records one total per checkout, so for items bought together the split is estimated (marked ≈) from each item's list price today. Add your games page for better estimates.</p>
-  <div class="kctl"><input id="kq" type="search" placeholder="Search by name" aria-label="Search your licenses"><select id="ks" aria-label="Filter by source"><option value="">All sources</option><option value="s">Bought on Steam</option><option value="k">Product keys</option><option value="f">Free</option><option value="g">Gifts received</option><option value="b">Betas and playtests</option><option value="kp" id="ksKp" hidden>3rd-party key purchases</option></select><select id="ky" aria-label="Filter by year"></select><span class="cnt" id="kcnt"></span></div>
+  <div class="kctl"><input id="kq" type="search" placeholder="Search by name" aria-label="Search your licenses"><select id="ks" aria-label="Filter by source"><option value="">All sources</option><option value="s">Bought on Steam</option><option value="k">Product keys</option><option value="f">Free</option><option value="g">Gifts received</option><option value="b">Betas and playtests</option><option value="u">Keys, free games and gifts</option><option value="kp" id="ksKp" hidden>3rd-party key purchases</option></select><select id="ky" aria-label="Filter by year"></select><span class="cnt" id="kcnt"></span></div>
   <div class="tbl" role="table" aria-label="Every license on your account">
    <div class="tr th k" role="row"><div role="columnheader">Added</div><div role="columnheader">Product</div><div role="columnheader" class="pr">Price paid (retail)</div><div role="columnheader">Source</div></div>
    <div id="krows"></div>
@@ -2849,6 +2849,18 @@ details.method>summary:hover .plus {
   <div class="dlgbtns"><button class="more" type="submit">Save purchase</button><button class="tbtn" type="button" id="buyDel" hidden>Delete</button></div>
  </form>
 </dialog>
+<dialog id="priceDlg" class="fdlg" aria-labelledby="priceH">
+ <form id="priceForm" novalidate>
+  <div class="fh"><h2 id="priceH">Edit price</h2><button type="button" class="x" aria-label="Close">×</button></div>
+  <p class="kpct" id="priceWhat"></p>
+  <div class="fg">
+   <label>Price you paid (before tax)<input name="paid" inputmode="decimal" required></label>
+   <label>List price<input name="list" inputmode="decimal" placeholder="Optional"></label>
+  </div>
+  <div class="ferr" id="priceErr" role="alert"></div>
+  <div class="dlgbtns"><button class="more" type="submit">Save price</button><button class="tbtn" type="button" id="priceReset">Use Steam's figure</button></div>
+ </form>
+</dialog>
 <datalist id="storeList"><option>Humble Bundle</option><option>Fanatical</option><option>GG.deals</option><option>Green Man Gaming</option><option>Gamesplanet</option><option>Indie Gala</option><option>Digiphile</option><option>Loaded</option><option>GOG</option><option>Epic Games Store</option></datalist>
 <dialog id="impDlg" class="fdlg" aria-labelledby="impH">
  <div class="fh"><h2 id="impH">Import purchases from a spreadsheet</h2><button type="button" class="x" aria-label="Close">×</button></div>
@@ -2867,7 +2879,9 @@ details.method>summary:hover .plus {
 const HALF_CENT = 0.005;
 
 // ================= parsing =================
-const MON = { jan: 0, feb: 1, mar: 2, apr: 3, may: 4, jun: 5, jul: 6, aug: 7, sep: 8, sept: 8, oct: 9, nov: 10, dec: 11 };
+const MON = {
+  jan: 0, feb: 1, mar: 2, apr: 3, may: 4, jun: 5, jul: 6, aug: 7, sep: 8, sept: 8, oct: 9, nov: 10, dec: 11
+};
 const iso = (y, m, d) => `${y}-${String(m + 1).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
 function parseDate(t) {
   t = (t || '').replace(/\s+/g, ' ').trim();
@@ -2987,7 +3001,9 @@ function parseHistory(doc) {
       const ds = [...payEl.querySelectorAll('div')].filter(d => !d.querySelector('div'));
       const split = ds.map(d => {
         const t = txt(d), m = parseMoney(t);
-        return m ? { amt: m.v, method: t.replace(/^[^A-Za-z]*[\d.,]+\s*/, '').replace(/\*+\s*\d+/g, '').trim() } : null;
+        return m ? {
+          amt: m.v, method: t.replace(/^[^A-Za-z]*[\d.,]+\s*/, '').replace(/\*+\s*\d+/g, '').trim()
+        } : null;
       }).filter(Boolean);
       if (split.length > 1 || (split.length === 1 && ds.length === 1 && /\d/.test(txt(ds[0]).slice(0, 4)))) {
         pays.push(...split);
@@ -3094,7 +3110,9 @@ function analyzeHistory(rows0, P) {
   rows.forEach(r => {
     if (r.total != null && r.cur !== cur && r.cur != null && r.wallet != null && r.wallet < 0 && r.walletCur === cur) {
       const f = -r.wallet / r.total;
-      converted.push({ date: r.date, name: r.items[0]?.name || r.type, orig: r.total, origCur: r.cur, amt: -r.wallet });
+      converted.push({
+        date: r.date, name: r.items[0]?.name || r.type, orig: r.total, origCur: r.cur, amt: -r.wallet
+      });
       r.total = -r.wallet;
       r.tax = (r.tax || 0) * f;
       r.paid = r.paid != null ? r.paid * f : null;
@@ -3327,7 +3345,10 @@ function cleanName(n) {
   s = s.replace(/\s+ROW$/, '').replace(/\s*-\s*(?:-\s*)+/g, ' - ').replace(/\s{2,}/g, ' ').replace(/^[\s-]+|[\s-]+$/g, '');
   return s || n;
 }
-const ACQUISITION_CODES = { 'Steam Store': 's', 'Retail': 'k', 'Complimentary': 'f', 'Gift/Guest Pass': 'g' };
+// 'Other' is used when licenses are pieced together without Steam's licenses page (key, free game or gift received)
+const ACQUISITION_CODES = {
+  'Steam Store': 's', 'Retail': 'k', 'Complimentary': 'f', 'Gift/Guest Pass': 'g', 'Other': 'u'
+};
 function analyzeLicenses(rows, P) {
   if (!rows.length) {
     return null;
@@ -3368,8 +3389,13 @@ function analyzeLicenses(rows, P) {
       }
     });
   }
-  R.sort((a, b) => a.date < b.date ? 1 : a.date > b.date ? -1 : a.i - b.i);
-  const first = R[R.length - 1].date, last = R[0].date, y0 = +first.slice(0, 4), y1 = +last.slice(0, 4), years = [];
+  // newest first; rows with no date go last
+  R.sort((a, b) => !a.date !== !b.date ? (a.date ? -1 : 1) : a.date < b.date ? 1 : a.date > b.date ? -1 : a.i - b.i);
+  const dated = R.filter(r => r.date);
+  if (!dated.length) {
+    return null;
+  }
+  const first = dated[dated.length - 1].date, last = dated[0].date, y0 = +first.slice(0, 4), y1 = +last.slice(0, 4), years = [];
   for (let y = y0; y <= y1; y++) {
     years.push(y);
   }
@@ -3377,10 +3403,10 @@ function analyzeLicenses(rows, P) {
     store: years.map(() => 0), key: years.map(() => 0), beta: years.map(() => 0), free: years.map(() => 0), gift: years.map(() => 0)
   };
   const T2 = { s: 'store', k: 'key', b: 'beta', f: 'free', g: 'gift' };
-  R.forEach(r => byYear[T2[r.t]][+r.date.slice(0, 4) - y0]++);
+  dated.forEach(r => byYear[T2[r.t]] && byYear[T2[r.t]][+r.date.slice(0, 4) - y0]++);
   const my = [y0 + 1, Math.min(y1 - 1, y1)];
   const mk = new Array(12).fill(0), ms = new Array(12).fill(0);
-  R.forEach(r => {
+  dated.forEach(r => {
     const y = +r.date.slice(0, 4);
     if (y < my[0] || y > my[1]) {
       return;
@@ -3406,14 +3432,52 @@ function analyzeLicenses(rows, P) {
   const sprees = [...bd.entries()].sort((a, b) => b[1].length - a[1].length || (a[0] < b[0] ? -1 : 1)).slice(0, 8).map(([date, names]) => ({ date, n: names.length, names }));
   const totals = {};
   Object.keys(byYear).forEach(k => totals[k] = byYear[k].reduce((a, b) => a + b, 0));
+  totals.other = R.filter(r => r.t === 'u').length;
   totals.all = R.length;
   return {
+    synthetic: R.some(r => r.pieced),
     first, last, years, byYear, monthKeys: mk, monthStore: ms, monthYears: my, sprees, totals, daysWithKeys: bd.size,
     list: R.map(r => {
       const c = cleanName(r.item);
       return [r.date, c, c !== r.item ? r.item : '', r.t];
     })
   };
+}
+// Without Steam's licenses pages, piece a license list together from what we do have: every product bought on
+// Steam (with its purchase date) from the purchase history, plus every other game on the games page, which came
+// from a key, a free claim or a gift and has no date.
+function synthesizeLicenses(D, P) {
+  const rows = [], seen = new Set();
+  D.rows.forEach(r => {
+    if (r.kind !== 'store' || r.hw) {
+      return;
+    }
+    r.items.forEach((it, k) => {
+      if (r.refunded[k]) {
+        return;
+      }
+      rows.push({ date: r.date, item: it.name, acq: 'Steam Store', pieced: true });
+      seen.add(normalizeName(it.name));
+      seen.add(stripEditionSuffix(normalizeName(it.name)));
+    });
+  });
+  if (P && P.games) {
+    const bought = makeNameMatcher(P.games), owned = new Set();
+    rows.forEach(r => {
+      const g = bought(r.item, false);
+      if (g) {
+        owned.add(g.id);
+      }
+    });
+    P.games.forEach(g => {
+      const kind = appKind(g, P.typed !== false && P.games.some(x => x.t != null));
+      if (owned.has(g.id) || (kind !== 'game' && kind !== 'delisted')) {
+        return;
+      }
+      rows.push({ date: '', item: g.name, acq: 'Other', pieced: true });
+    });
+  }
+  return rows;
 }
 
 // ================= playtime (saved "All games" page) =================
@@ -3576,7 +3640,8 @@ function analyzePlaytime(P, H, L, kp, ov) {
     if (!g) {
       return;
     }
-    spent.set(g.id, (spent.get(g.id) || 0) + r.paid);
+    const edit = editedPrice(ov, r, u[0]);
+    spent.set(g.id, (spent.get(g.id) || 0) + (edit ? edit.paid * r.items.length : r.paid));
     if (base) {
       hasBase.add(g.id);
     }
@@ -3585,31 +3650,49 @@ function analyzePlaytime(P, H, L, kp, ov) {
   // or what their key cost at another store. Exact prices always win.
   const estimated = new Set();
   const addEstimate = (g, amount, isEstimate) => {
-    if (!g || hasBase.has(g.id) || !(amount > 0)) return;
+    if (!g || hasBase.has(g.id) || !(amount > 0)) {
+      return;
+    }
     spent.set(g.id, (spent.get(g.id) || 0) + amount);
     hasBase.add(g.id);
-    if (isEstimate) estimated.add(g.id);
+    if (isEstimate) {
+      estimated.add(g.id);
+    }
   };
   const cartPrices = itemPrices(H || [], P, ov);
   (H || []).forEach(r => {
-    if (r.kind !== 'store' || r.hw || !cartPrices.has(r)) return;
+    if (r.kind !== 'store' || r.hw || !cartPrices.has(r)) {
+      return;
+    }
     cartPrices.get(r).forEach((x, k) => {
-      if (x && !r.refunded[k]) addEstimate(match(r.items[k].name, false), x.paid, x.est);
+      if (x && !r.refunded[k]) {
+        addEstimate(match(r.items[k].name, false), x.paid, x.est);
+      }
     });
   });
   // purchases outside Steam that are for a Steam game (a subscription like Trackmania Club Access)
   const linked = new Map(), linkedEst = new Set();
   (kp && kp.orders || []).forEach(o => o.items.forEach(it => {
-    if (!it.forGame || it.paid == null) return;
+    if (!it.forGame || it.paid == null) {
+      return;
+    }
     const g = match(it.forGame, false);
-    if (!g) return;
+    if (!g) {
+      return;
+    }
     linked.set(g.id, (linked.get(g.id) || 0) + it.paid);
-    if (it.est) linkedEst.add(g.id);
+    if (it.est) {
+      linkedEst.add(g.id);
+    }
   }));
   (kp && kp.orders || []).forEach(o => {
-    if (o.notSteam || o.giftReceived) return;
+    if (o.notSteam || o.giftReceived) {
+      return;
+    }
     o.items.forEach(it => {
-      if (it.paid == null || it.status === 'gifted' || it.status === 'refunded') return;
+      if (it.paid == null || it.status === 'gifted' || it.status === 'refunded') {
+        return;
+      }
       const g = (it.lic && match(it.lic[1], false)) || match(it.name, false);
       addEstimate(g, it.paid / (it.qty || 1), !!it.est || !!o.subEst);
     });
@@ -3617,10 +3700,14 @@ function analyzePlaytime(P, H, L, kp, ov) {
   // in-game purchases (TF2 keys, Siege credits…) count towards the game they were bought in
   const inGame = new Map();
   (H || []).forEach(r => {
-    if (r.kind !== 'ingame' || r.refunded.some(Boolean)) return;
+    if (r.kind !== 'ingame' || r.refunded.some(Boolean)) {
+      return;
+    }
     const g = match(r.items[0] ? r.items[0].name : '', false);
     const amount = r.paid != null ? r.paid : r.total;
-    if (g && amount > 0) inGame.set(g.id, (inGame.get(g.id) || 0) + amount);
+    if (g && amount > 0) {
+      inGame.set(g.id, (inGame.get(g.id) || 0) + amount);
+    }
   });
   const hrs = g => g.min / 60;
   const row = g => {
@@ -3652,7 +3739,7 @@ function analyzePlaytime(P, H, L, kp, ov) {
       }
       src.get(g.id).add(r[3] === 'b' ? 'k' : r[3]);
     });
-    bySrc = { s: [0, 0], k: [0, 0], f: [0, 0], g: [0, 0] };
+    bySrc = { s: [0, 0], k: [0, 0], f: [0, 0], g: [0, 0], u: [0, 0] };
     G.forEach(g => {
       const s = src.get(g.id);
       if (!s || s.size !== 1) {
@@ -3713,12 +3800,18 @@ function renderPlay(PL, D) {
   const vrow = (r, c) => `<div class="vrow"><span class="n" title="${escapeHtml(r.name)}">${escapeHtml(r.name)}</span><span class="h">${formatHours(r.h)}</span><span class="c">${c}</span></div>`;
   const approx = r => r.est ? '≈ ' : '';
   const perHour = r => {
-    if (!r.spent) return '';
+    if (!r.spent) {
+      return '';
+    }
     const value = `<b>${escapeHtml(formatMoney(r.spent / r.h))}</b>/h`;
     if (r.inGameOnly) {
       const parts = [];
-      if (r.linked) parts.push(`${formatMoney(r.linked)} bought outside Steam for this game`);
-      if (r.inGame - r.linked > HALF_CENT) parts.push(`${formatMoney(r.inGame - r.linked)} of in-game purchases`);
+      if (r.linked) {
+        parts.push(`${formatMoney(r.linked)} bought outside Steam for this game`);
+      }
+      if (r.inGame - r.linked > HALF_CENT) {
+        parts.push(`${formatMoney(r.inGame - r.linked)} of in-game purchases`);
+      }
       return `<span title="The game itself was free or a boxed retail copy, so this counts ${escapeHtml(parts.join(' and '))}.">${approx(r)}${value}</span>`;
     }
     const note = r.inGame ? ` title="Includes ${escapeHtml(formatMoney(r.inGame))} of in-game purchases."` : '';
@@ -3729,7 +3822,8 @@ function renderPlay(PL, D) {
   $('#pWorst').innerHTML = PL.worst.length ? PL.worst.map(r => vrow(r, approx(r) + escapeHtml(formatMoney(r.spent)))).join('') : '<p class="vempty">Nothing you paid for sits under an hour. Nice.</p>';
   if (PL.bySrc) {
     const S = [
-      ['s', 'Bought on Steam', '#66c0f4'], ['k', 'Product keys', '#e8b64a'], ['g', 'Gifts received', '#ff6fa8'], ['f', 'Free', '#6b7a88']
+      ['s', 'Bought on Steam', '#66c0f4'], ['k', 'Product keys', '#e8b64a'], ['g', 'Gifts received', '#ff6fa8'], ['f', 'Free', '#6b7a88'],
+      ['u', 'Keys, free games and gifts', '#8f98a0'] // only when there's no licenses page to tell them apart
     ].filter(s => PL.bySrc[s[0]][0] > 0);
     $('#pSrc').innerHTML = S.map(s => {
       const [n, never] = PL.bySrc[s[0]], p = never / n * 100;
@@ -3739,7 +3833,8 @@ function renderPlay(PL, D) {
         <div class="np-sub">${never.toLocaleString()} of ${n.toLocaleString()} games never played</div>
       </div>`;
     }).join('');
-    $('#pSrcNote').textContent = `Share of each source's games with no playtime. Based on the ${PL.srcMatched.toLocaleString()} of ${PL.count.toLocaleString()} games that could be matched to a single license by name.`;
+    $('#pSrcNote').textContent = `Share of each source's games with no playtime. Based on the ${PL.srcMatched.toLocaleString()} of ${PL.count.toLocaleString()} games that could be matched to a single license by name.` +
+      (report.K && report.K.synthetic ? ' Add your licenses pages to split keys, free games and gifts apart.' : '');
   } else {
     $('#pSrc').innerHTML = '<p class="vempty">Add your licenses page to see this.</p>';
     $('#pSrcNote').textContent = '';
@@ -3796,6 +3891,11 @@ function itemPrices(rows, P, ov) {
   return out;
 }
 // what each Steam Store license cost, from the purchase history (same day, or a day either side, and the same name)
+// A price the visitor typed in for one product of a checkout, or null.
+function editedPrice(ov, r, itemName) {
+  const e = ov && ov[r.date + '|' + itemName];
+  return e && typeof e === 'object' && e.edited ? e : null;
+}
 function licensePrices(K, rows, P, ov) {
   const out = new Map();
   if (!K || !rows) {
@@ -3817,6 +3917,18 @@ function licensePrices(K, rows, P, ov) {
     if (l[3] !== 's') {
       return;
     }
+    // a price typed in for a license that isn't tied to a checkout
+    const own = ov && ov['lic:' + l[0] + '|' + (l[2] || l[1])];
+    if (own && own.edited) {
+      out.set(i, {
+        paid: own.paid, list: own.list ?? own.paid, est: false, edited: true, ovKey: 'lic:' + l[0] + '|' + (l[2] || l[1])
+      });
+      return;
+    }
+    if (!l[0]) {
+      out.set(i, { none: true, ovKey: 'lic:|' + (l[2] || l[1]) });
+      return;
+    }
     const ns = [normalizeName(l[2] || l[1]), normalizeName(l[1])];
     for (const d of [l[0], shift(l[0], -1), shift(l[0], 1)]) {
       const rs = byDay.get(d);
@@ -3829,14 +3941,26 @@ function licensePrices(K, rows, P, ov) {
           continue;
         }
         const u = new Set(r.items.map(it => it.name)).size;
+        const ovKey = r.date + '|' + r.items[k].name, edit = ov && ov[ovKey];
+        let price;
         if (u === 1 && r.paid != null) {
-          out.set(i, {
+          price = {
             paid: r.paid / r.items.length, list: (r.list ?? r.paid) / r.items.length, est: !!r.est, listEst: !!r.est, cart: r.est ? r.splitFrom.items.length : undefined
-          });
+          };
         } else {
           const x = IP.get(r) && IP.get(r)[k];
-          out.set(i, x ? { paid: x.paid, list: x.list, est: x.est, listEst: x.listEst || x.est, cart: r.items.length } : { none: true });
+          price = x ? {
+            paid: x.paid, list: x.list, est: x.est, listEst: x.listEst || x.est, cart: r.items.length
+          } : { none: true };
         }
+        // a price you typed in wins over what the checkout says
+        if (edit && typeof edit === 'object' && edit.edited) {
+          price = {
+            ...price, none: false, paid: edit.paid, list: edit.list ?? Math.max(edit.paid, price.list || 0), est: false, listEst: edit.list == null, edited: true
+          };
+        }
+        price.ovKey = ovKey;
+        out.set(i, price);
         return;
       }
     }
@@ -3939,7 +4063,9 @@ function makeExample() {
       const n2 = ri(0, 4);
       for (let k = 0; k < n2; k++) {
         const p = pick([4.99, 9.99, 1.99, 19.99]);
-        row(d(y, month(y), ri(1, 28)), [{ name: 'Skyward Brawl', to: null, sub: pick(['Season Pass', '500 Crystals', 'Starter Pack']) }], 'In-Game Purchase', 'Wallet', p, p);
+        row(d(y, month(y), ri(1, 28)), [{
+          name: 'Skyward Brawl', to: null, sub: pick(['Season Pass', '500 Crystals', 'Starter Pack'])
+        }], 'In-Game Purchase', 'Wallet', p, p);
       }
     }
     if (y >= 2013 && y <= 2022) {
@@ -4177,7 +4303,7 @@ function downloadReport() {
 // ================= rendering =================
 const $ = s => document.querySelector(s), $$ = s => [...document.querySelectorAll(s)];
 const escapeHtml = s => String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
-const formatDate = d => new Date(d + 'T12:00').toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+const formatDate = d => d ? new Date(d + 'T12:00').toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : 'Date unknown';
 const MONTH_NAMES = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
 const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
 let currency = { cur: '$', pre: true, dec: '.' };
@@ -4297,8 +4423,8 @@ function renderReport(D, K, name0) {
       rows.push(['3rd-party keys', '+ ' + formatMoney(KS.total), `${pluralize(KS.orders, 'order')} from other stores`, 'k']);
       rows.push(['Steam + keys', formatMoney(nonHw + KS.total), 'Everything spent on Steam games, wherever you bought them', 't']);
     }
-    if (K) {
-      const KPM = linked(K, report.kp), n = K.totals.key;
+    if (K && !K.synthetic) {
+      const KPM = keyPurchaseMap(K, report.kp), n = K.totals.key;
       rows.push(['Keys activated', n.toLocaleString(), KPM.size ? `${KPM.size.toLocaleString()} matched to a purchase or gift` : 'Product keys from outside Steam', 'n']);
     }
     if (T.hardware > HALF_CENT) {
@@ -4391,9 +4517,10 @@ function renderReport(D, K, name0) {
       if (r.refunded.some(Boolean)) {
         return;
       }
-      const n = r.items.length;
+      const n = r.items.length, edit = editedPrice(report.ov, r, u[0]);
       cand.push({
-        name: u[0], date: r.date, paid: r.paid / n, orig: (r.list ?? r.paid) / n, gift: r.kind === 'gift', copies: n, est: !!r.est
+        name: u[0], date: r.date, paid: edit ? edit.paid : r.paid / n, orig: edit ? edit.list ?? edit.paid : (r.list ?? r.paid) / n,
+        gift: r.kind === 'gift', copies: n, est: !edit && !!r.est
       });
       return;
     }
@@ -4413,7 +4540,9 @@ function renderReport(D, K, name0) {
       if (r.refunded[k] || gone.has(k) || !x[k]) {
         return;
       }
-      const g = by.get(it.name) || { name: it.name, date: r.date, paid: 0, orig: 0, gift: r.kind === 'gift' || !!it.to, copies: 0, est: false };
+      const g = by.get(it.name) || {
+        name: it.name, date: r.date, paid: 0, orig: 0, gift: r.kind === 'gift' || !!it.to, copies: 0, est: false
+      };
       g.paid += x[k].paid;
       g.orig += Math.max(x[k].list ?? x[k].paid, x[k].paid);
       g.copies++;
@@ -4562,9 +4691,7 @@ const yFit = w => s => {
 function setRows(ch, n) {
   ch.options.layout.padding.bottom = rowPad(n);
 }
-
 // One row of the "Top games by price paid" table.
-
 // Games that a "<Series> Bundle" most likely contained: games named exactly after the series, or the series plus
 // a subtitle ("Crysis", "Crysis Warhead", "Crysis Wars"). Numbered sequels and remasters are left out, since a
 // bundle named after the first game usually doesn't include them. Returns null unless at least two games match.
@@ -4580,20 +4707,29 @@ function bundleGames(name, games) {
     const hits = games.filter(g => (!g.k || g.k === 'game' || g.k === 'delisted') && known.test(normalizeName(g.name)));
     return hits.length ? hits : null;
   }
-  if (!/\bbundle$/.test(n)) return null;
+  if (!/\bbundle$/.test(n)) {
+    return null;
+  }
   const base = n.replace(/\s+(maximum edition|complete|collection|franchise)?\s*bundle$/, '').trim();
-  if (base.length < 4) return null;
+  if (base.length < 4) {
+    return null;
+  }
   const hits = games.filter(g => {
-    if (g.k && g.k !== 'game' && g.k !== 'delisted') return false;
+    if (g.k && g.k !== 'game' && g.k !== 'delisted') {
+      return false;
+    }
     const gn = normalizeName(g.name);
-    if (gn === base) return true;
-    if (!gn.startsWith(base + ' ')) return false;
+    if (gn === base) {
+      return true;
+    }
+    if (!gn.startsWith(base + ' ')) {
+      return false;
+    }
     const next = gn.slice(base.length + 1).split(' ')[0];
     return !/^(\d+|ii|iii|iv|v|vi|remastered|remake)$/.test(next);
   });
   return hits.length >= 2 ? hits : null;
 }
-
 function topGameRowHtml(g, index, extraClass, hoursCell) {
   const gift = g.gift ? `<span class="gift">GIFT${g.copies > 1 ? ' ×' + g.copies : ''}</span>` : '';
   const estimate = g.est
@@ -4607,10 +4743,7 @@ function topGameRowHtml(g, index, extraClass, hoursCell) {
     <div class="r" role="cell">${estimate}${priceBadge(g.orig, g.paid)}</div>
   </div>`;
 }
-
-
 // One card in the Hardware section.
-
 // Shows the first `limit` rows of each list, with one button for all of them. Expanded, each list shows every row
 // but only twice `limit` fit before it scrolls.
 function expandableLists(lists, buttonSel, limit) {
@@ -4635,7 +4768,9 @@ function expandableLists(lists, buttonSel, limit) {
       const bottom = Math.max(...ends);
       lists.forEach(({ sel }) => {
         const box = $(sel);
-        if (box.scrollHeight > bottom - top(box) + 1) box.style.maxHeight = (bottom - top(box)) + 'px';
+        if (box.scrollHeight > bottom - top(box) + 1) {
+          box.style.maxHeight = (bottom - top(box)) + 'px';
+        }
         box.classList.toggle('scrolls', box.scrollHeight > box.clientHeight + 1);
       });
     }
@@ -4648,10 +4783,11 @@ function expandableLists(lists, buttonSel, limit) {
   };
   draw();
 }
-
 function hardwareCardHtml(h, hardwareTotal) {
   const notes = [];
-  if (h.deposit) notes.push(`Includes a ${escapeHtml(formatMoney(h.deposit.amt))} deposit paid ${formatDate(h.deposit.date)}.`);
+  if (h.deposit) {
+    notes.push(`Includes a ${escapeHtml(formatMoney(h.deposit.amt))} deposit paid ${formatDate(h.deposit.date)}.`);
+  }
   if (h.others.length && h.others.length < h.name.split(' + ').length) {
     notes.push(`The same checkout included ${escapeHtml(h.others.join(', '))}; Steam charges one price per checkout, so all of it is counted here.`);
   }
@@ -4667,24 +4803,33 @@ function hardwareCardHtml(h, hardwareTotal) {
     <div class="share" title="Share of hardware spending"><div style="width:${(h.total / hardwareTotal * 100).toFixed(1)}%"></div></div>
   </div>`;
 }
-
 function buildCharts(D) {
   const yrs = D.years.map(String), moneyTicks = { callback: v => formatMoney0(v) }, d0 = v => Math.abs(v) >= 0.5 ? formatMoney0(v) : '';
   // year by year: stacked categories, total on top, each category's amount underneath.
   // Hardware and 3rd-party keys can be switched on, but start off so the default is Steam game spending.
   const yCats = D.cats.filter(c => c !== 'Hardware' && D.byYear[c].some(v => Math.abs(v) > HALF_CENT));
-  const series = yCats.map(c => ({ key: c, label: c, short: { 'Games and DLC for you': 'For you', 'In-game items': 'In-game' }[c] || c, color: CATEGORY_COLORS[c], data: D.byYear[c], on: true }));
+  const series = yCats.map(c => ({
+    key: c, label: c, short: { 'Games and DLC for you': 'For you', 'In-game items': 'In-game' }[c] || c, color: CATEGORY_COLORS[c], data: D.byYear[c], on: true
+  }));
   const keysByYear = D.years.map(() => 0);
   (report.kp && report.kp.orders || []).forEach(o => {
-    if (o.notSteam || o.giftReceived || !o.date) return;
+    if (o.notSteam || o.giftReceived || !o.date) {
+      return;
+    }
     const i = D.years.indexOf(+o.date.slice(0, 4));
-    if (i >= 0) keysByYear[i] += o.total || 0;
+    if (i >= 0) {
+      keysByYear[i] += o.total || 0;
+    }
   });
   if (keysByYear.some(v => v > HALF_CENT)) {
-    series.push({ key: 'keys', label: '3rd-party keys', short: 'Keys', color: '#e8b64a', data: keysByYear, on: false });
+    series.push({
+      key: 'keys', label: '3rd-party keys', short: 'Keys', color: '#e8b64a', data: keysByYear, on: false
+    });
   }
   if (D.byYear['Hardware'].some(v => v > HALF_CENT)) {
-    series.push({ key: 'Hardware', label: 'Hardware', short: 'Hardware', color: '#e6edf3', data: D.byYear['Hardware'], on: false });
+    series.push({
+      key: 'Hardware', label: 'Hardware', short: 'Hardware', color: '#e6edf3', data: D.byYear['Hardware'], on: false
+    });
   }
   $('#lgYear').innerHTML = series.map(s => `<button class="chip" aria-pressed="${s.on}" data-c="${escapeHtml(s.key)}"><i style="background:${s.color}"></i>${escapeHtml(s.label)}</button>`).join('');
   const visTotal = i => series.reduce((a, s) => a + (s.on ? Math.max(0, s.data[i]) : 0), 0);
@@ -4799,7 +4944,9 @@ function buildCharts(D) {
     },
     options: {
       maintainAspectRatio: false, layout: { padding: { top: 18, bottom: rowPad(1) } }, plugins: { legend: { display: false } }, scales: {
-        x: { grid: { display: false }, ticks: { color: '#beee11', font: { weight: '700' } } }, y: { grid: { color: GRID_COLOR }, title: { display: true, text: 'Checkouts' }, afterFit: yFit(56) }
+        x: { grid: { display: false }, ticks: { color: '#beee11', font: { weight: '700' } } }, y: {
+          grid: { color: GRID_COLOR }, title: { display: true, text: 'Checkouts' }, afterFit: yFit(56)
+        }
       }
     }
   });
@@ -4825,11 +4972,11 @@ function buildCharts(D) {
   charts.push(mc);
 }
 const SOURCE_LABELS = {
-  s: ['Bought on Steam', '#66c0f4'], k: ['Product key', '#e8b64a'], f: ['Free', '#6b7a88'], g: ['Gift received', '#ff6fa8'], b: ['Beta or playtest', '#9fd3e8']
+  s: ['Bought on Steam', '#66c0f4'], k: ['Product key', '#e8b64a'], f: ['Free', '#6b7a88'], g: ['Gift received', '#ff6fa8'], b: ['Beta or playtest', '#9fd3e8'],
+  u: ['Key, free or gift', '#8f98a0'],
 };
-
 // One row of the "Every license on your account" table.
-function licenseRowHtml(r, priceHtml, keyPurchase) {
+function licenseRowHtml(r, priceHtml, keyPurchase, index) {
   const [date, name, rawName, source] = r;
   const [sourceLabel, sourceColor] = SOURCE_LABELS[source];
   // a license named in another script (e.g. Chinese) also shows the name the key was sold under
@@ -4838,35 +4985,56 @@ function licenseRowHtml(r, priceHtml, keyPurchase) {
     : '';
   return `<div class="tr k" role="row">
     <div class="dt" role="cell">${formatDate(date)}</div>
-    <div class="nm" role="cell" title="${escapeHtml(rawName || name)}">${escapeHtml(name)}${altName}</div>
+    <div class="nm" role="cell" title="${escapeHtml(rawName || name)}">${escapeHtml(name)}${altName}<button class="oedit" data-lic="${index}" aria-label="Edit ${escapeHtml(name)}">Edit</button></div>
     <div class="pr" role="cell">${priceHtml}</div>
     <div class="sc" role="cell"><span class="src" title="${sourceLabel}"><i style="background:${sourceColor}"></i><span>${sourceLabel}</span></span></div>
   </div>`;
 }
-
+// Licenses section when no licenses pages were uploaded: built from the purchase history and games page.
+function renderPiecedTogetherLicenses(K) {
+  const KT = K.totals;
+  $('#keyLede').textContent = "You didn't add your licenses pages, so this is pieced together from your purchase history" +
+    (report.p ? ' and games page' : '') + '. Everything bought on Steam has a date; games that came from keys, free claims or gifts can\'t be told apart or dated.';
+  const tiles = [[KT.store.toLocaleString(), 'bought on Steam', '#66c0f4']];
+  if (KT.other) {
+    tiles.push([KT.other.toLocaleString(), 'from keys, free claims or gifts', '#8f98a0']);
+  }
+  $('#kTiles').innerHTML = tiles.map(t => `<div class="tile" style="--tc:${t[2]}"><b>${t[0]}</b><span>${t[1]}</span></div>`).join('');
+  $('#kLicNote').textContent = 'Add your licenses pages (see step 2 on the upload screen) to see every product key, free game and gift with its date.';
+  $('#sprees').innerHTML = '<p class="vempty">Needs your licenses pages, which record when each key was activated.</p>';
+  const ms = K.monthStore, ss = ms.reduce((a, b) => a + b, 0);
+  const top3 = ms.map((v, i) => [v, i]).sort((x, y) => y[0] - x[0]).slice(0, 3);
+  $('#kMonthNote').textContent = ss
+    ? `Store purchases only, since keys need your licenses pages. The top three months hold ${Math.round(top3.reduce((a, b) => a + b[0], 0) / ss * 100)}% of them (${top3.map(x => MONTHS[x[1]]).join(', ')}); an even spread would be 25%.`
+    : '';
+}
 function renderKeys(K) {
   const KT = K.totals, adds = KT.store + KT.key + KT.free + KT.gift, share = adds ? Math.round(KT.key / adds * 100) : 0;
-  $('#keyLede').textContent = `Every key you activated from ${formatDate(K.first)} to ${formatDate(K.last)}, from bundles, key stores, boxed copies and anywhere else off-Steam. There are no prices here, because Steam doesn't record what you paid for a key elsewhere, so none of this changes the spending totals above.`;
-  $('#kTiles').innerHTML = [
-    [KT.key.toLocaleString(), 'product keys activated', '#e8b64a'], [share + '%', 'of licenses came from a key', '#e8b64a'], [KT.store.toLocaleString(), 'licenses bought on Steam', '#66c0f4'], [KT.free.toLocaleString(), 'free licenses', '#6b7a88'], [KT.gift.toLocaleString(), 'gift licenses received', '#ff6fa8']
-  ]
-    .map(t => `<div class="tile" style="--tc:${t[2]}"><b>${t[0]}</b><span>${t[1]}</span></div>`).join('');
-  $('#kLicNote').textContent = `A license is anything Steam adds to your account: a game, but also each DLC, soundtrack, costume pack or free promo. So ${adds.toLocaleString()} licenses doesn't mean ${adds.toLocaleString()} games.${report.PL ? ` Going by the type Steam gives each app, you have ${report.PL.games.toLocaleString()} games (see Games and playtime).` : ' Add your games page for a real game count.'}`;
-  const sp = K.sprees.slice(0, 6);
-  $('#sprees').innerHTML = sp.length ? sp.map(x => `<details class="spree"><summary><span><b>${formatDate(x.date)}</b><span class="s">${escapeHtml(x.names.slice(0, 3).join(', '))}${x.n > 3 ? `, and ${x.n - 3} more` : ''}</span></span><span class="n">${pluralize(x.n, 'key')}</span></summary><ul>${x.names.map(n => `<li>${escapeHtml(n)}</li>`).join('')}</ul></details>`).join('') : '<p style="color:var(--muted);margin:0">No product keys found.</p>';
-  const mk = K.monthKeys, ms = K.monthStore, sk = mk.reduce((a, b) => a + b, 0), ss = ms.reduce((a, b) => a + b, 0);
-  const top3 = a => a.map((v, i) => [v, i]).sort((x, y) => y[0] - x[0]).slice(0, 3);
-  $('#kMonthNote').textContent = K.monthYears[1] >= K.monthYears[0] && sk && ss ? `Full years ${K.monthYears[0]}–${K.monthYears[1]} only. The top three months hold ${Math.round(top3(ms).reduce((a, b) => a + b[0], 0) / ss * 100)}% of store purchases (${top3(ms).map(x => MONTHS[x[1]]).join(', ')}) and ${Math.round(top3(mk).reduce((a, b) => a + b[0], 0) / sk * 100)}% of key activations (${top3(mk).map(x => MONTHS[x[1]]).join(', ')}). If purchases were spread evenly across the year, any three months would hold 25% (3 of 12), so the higher the number, the more it bunches up.` : 'Not enough full years yet to compare months.';
+  if (K.synthetic) {
+    renderPiecedTogetherLicenses(K);
+  } else {
+    $('#keyLede').textContent = `Every key you activated from ${formatDate(K.first)} to ${formatDate(K.last)}, from bundles, key stores, boxed copies and anywhere else off-Steam. There are no prices here, because Steam doesn't record what you paid for a key elsewhere, so none of this changes the spending totals above.`;
+    $('#kTiles').innerHTML = [
+      [KT.key.toLocaleString(), 'product keys activated', '#e8b64a'], [share + '%', 'of licenses came from a key', '#e8b64a'], [KT.store.toLocaleString(), 'licenses bought on Steam', '#66c0f4'], [KT.free.toLocaleString(), 'free licenses', '#6b7a88'], [KT.gift.toLocaleString(), 'gift licenses received', '#ff6fa8']
+    ]
+      .map(t => `<div class="tile" style="--tc:${t[2]}"><b>${t[0]}</b><span>${t[1]}</span></div>`).join('');
+    $('#kLicNote').textContent = `A license is anything Steam adds to your account: a game, but also each DLC, soundtrack, costume pack or free promo. So ${adds.toLocaleString()} licenses doesn't mean ${adds.toLocaleString()} games.${report.PL ? ` Going by the type Steam gives each app, you have ${report.PL.games.toLocaleString()} games (see Games and playtime).` : ' Add your games page for a real game count.'}`;
+    const sp = K.sprees.slice(0, 6);
+    $('#sprees').innerHTML = sp.length ? sp.map(x => `<details class="spree"><summary><span><b>${formatDate(x.date)}</b><span class="s">${escapeHtml(x.names.slice(0, 3).join(', '))}${x.n > 3 ? `, and ${x.n - 3} more` : ''}</span></span><span class="n">${pluralize(x.n, 'key')}</span></summary><ul>${x.names.map(n => `<li>${escapeHtml(n)}</li>`).join('')}</ul></details>`).join('') : '<p style="color:var(--muted);margin:0">No product keys found.</p>';
+    const mk = K.monthKeys, ms = K.monthStore, sk = mk.reduce((a, b) => a + b, 0), ss = ms.reduce((a, b) => a + b, 0);
+    const top3 = a => a.map((v, i) => [v, i]).sort((x, y) => y[0] - x[0]).slice(0, 3);
+    $('#kMonthNote').textContent = K.monthYears[1] >= K.monthYears[0] && sk && ss ? `Full years ${K.monthYears[0]}–${K.monthYears[1]} only. The top three months hold ${Math.round(top3(ms).reduce((a, b) => a + b[0], 0) / ss * 100)}% of store purchases (${top3(ms).map(x => MONTHS[x[1]]).join(', ')}) and ${Math.round(top3(mk).reduce((a, b) => a + b[0], 0) / sk * 100)}% of key activations (${top3(mk).map(x => MONTHS[x[1]]).join(', ')}). If purchases were spread evenly across the year, any three months would hold 25% (3 of 12), so the higher the number, the more it bunches up.` : 'Not enough full years yet to compare months.';
+  }
   const L = K.list, LP = licensePrices(K, report.D && report.D.rows, report.p, report.ov);
-  const KPM = linked(K, report.kp);
+  const KPM = keyPurchaseMap(K, report.kp);
   const priceCell = (r, i) => {
     if (r[3] === 'f') {
       return '<span class="pz">Free</span>';
     }
-    if (r[3] === 'k') {
+    if (r[3] === 'k' || r[3] === 'u') {
       const q = KPM.get(i);
       if (!q) {
-        return '<span class="pz">Key</span>';
+        return r[3] === 'k' ? '<span class="pz">Key</span>' : '<span class="pz">–</span>';
       }
       if (q.order.notSteam) {
         return `<span title="From ${escapeHtml(q.order.bundle || 'a non-game bundle')} (${escapeHtml(formatMoney(q.order.total))}), which isn't counted in game totals."><span class="pz">≈ ${escapeHtml(formatMoney(q.paid))} · ${escapeHtml(q.order.notSteam.toLowerCase())}</span></span>`;
@@ -4892,11 +5060,19 @@ function renderKeys(K) {
     if (!p || p.none) {
       return '<span class="pz">–</span>';
     }
-    const tip = p.est ? `Estimated: bought in a ${p.cart}-item checkout, and Steam only records the checkout total. Split by each item's list price.` : (p.cart ? `Exact, from a ${p.cart}-item checkout.` : 'Exact.');
-    return `<span title="${tip}">${p.est ? '≈ ' : ''}${escapeHtml(formatMoney(p.paid))}${p.list > p.paid + HALF_CENT ? ` <span class="pz">(${p.listEst ? '≈ ' : ''}${escapeHtml(formatMoney(p.list))})</span>` : ''}</span>`;
+    const tip = p.edited ? 'You entered this price.' : p.est ? `Estimated: bought in a ${p.cart}-item checkout, and Steam only records the checkout total. Split by each item's list price.` : (p.cart ? `Exact, from a ${p.cart}-item checkout.` : 'Exact.');
+    return `<span title="${tip}">${p.edited ? '<span class="edited" aria-label="edited">✎</span> ' : ''}${p.est ? '≈ ' : ''}${escapeHtml(formatMoney(p.paid))}${p.list > p.paid + HALF_CENT ? ` <span class="pz">(${p.listEst ? '≈ ' : ''}${escapeHtml(formatMoney(p.list))})</span>` : ''}</span>`;
   };
   $('#ky').innerHTML = '<option value="">All years</option>' + [...K.years].reverse().map(y => `<option>${y}</option>`).join('');
   $('#ksKp').hidden = !(report.kp && report.kp.orders && report.kp.orders.length);
+  $$('#ks option').forEach(o => {
+    if (['k', 'f', 'g', 'b'].includes(o.value)) {
+      o.hidden = !!K.synthetic;
+    }
+    if (o.value === 'u') {
+      o.hidden = !K.synthetic;
+    }
+  });
   renderKeyPurchases(report.kp, K);
   $('#kq').value = '';
   $('#ks').value = '';
@@ -4907,7 +5083,7 @@ function renderKeys(K) {
     nF = f.length;
     const sh = f.slice(0, lim);
     $('#krows').innerHTML = sh.length
-      ? sh.map(([r, i]) => licenseRowHtml(r, priceCell(r, i), KPM.get(i))).join('')
+      ? sh.map(([r, i]) => licenseRowHtml(r, priceCell(r, i), KPM.get(i), i)).join('')
       : '<div class="kempty">Nothing matches. Try a shorter search or pick All years.</div>';
     $('#kcnt').textContent = `${f.length.toLocaleString()} of ${L.length.toLocaleString()}`;
     const b = $('#kmore');
@@ -4934,6 +5110,12 @@ function renderKeys(K) {
 }
 function keyNotes(K) {
   const KT = K.totals;
+  if (K.synthetic) {
+    return [
+      "No licenses pages were added, so the Licenses and keys section is pieced together: products bought on Steam come from the purchase history (with their dates), and every other game on your games page is listed as a key, free claim or gift, with no date.",
+      'Without the licenses pages, product keys, free games and gifts received can\'t be told apart, and key activations per year and month can\'t be shown.',
+    ];
+  }
   return [
     `Product keys come from Steam's "Licenses and product key activations" page, ${formatDate(K.first)} to ${formatDate(K.last)}. Anything marked Retail there counts as a key. Keys have no price attached, so they never feed into the dollar figures.`,
     `Each row on that page is a license, not a key. A single key occasionally grants more than one license (a game plus its soundtrack, say), so the key count can run slightly high.`,
@@ -4943,41 +5125,49 @@ function keyNotes(K) {
     report.kp && report.kp.orders && report.kp.orders.length ? `Keys marked 3rd-party were bought from a key store outside Steam, from order receipts you provided. Their cost is shown next to each key but kept out of all Steam spending figures.` : null
   ];
 }
-
 // One row of the 3rd-party purchases table.
 function purchaseRowHtml(o, it, statusKey, status, statusLabel, qty) {
   const first = it === o.items[0];
-
   let date = '<span class="pz">Date unknown</span>';
   if (o.date) {
     date = o.dateEst
       ? `<span title="Order date not known; this is when the key was activated.">≈ ${formatDate(o.date)}</span>`
       : formatDate(o.date);
   }
-
   let name = escapeHtml(it.name) + (qty > 1 ? ` ×${qty}` : '');
-  if (first) name += `<button class="oedit" data-edit="${o.id}" aria-label="Edit this purchase">Edit</button>`;
-  if (o.store) name += `<span class="pz"> · ${escapeHtml(o.store)}</span>`;
+  if (first) {
+    name += `<button class="oedit" data-edit="${o.id}" aria-label="Edit this purchase">Edit</button>`;
+  }
+  if (o.store) {
+    name += `<span class="pz"> · ${escapeHtml(o.store)}</span>`;
+  }
   if (first && o.bundle && o.bundle !== it.name) {
     const title = o.totalNote ? ` title="${escapeHtml(o.totalNote)}"` : '';
     const price = (o.totalEst ? '≈ ' : '') + escapeHtml(formatMoney(o.total));
     name += `<span class="pz"${title}> · ${escapeHtml(o.bundle)}, ${price}${o.partial ? ', more games not shown' : ''}</span>`;
   }
-  if (first && o.bundleGames) name += `<span class="pz bundle-games">${escapeHtml(o.bundleGames.join(', '))}</span>`;
-  if (statusKey !== 'notsteam') name += '<span class="tp">3rd-party</span>';
-
+  if (first && o.bundleGames) {
+    name += `<span class="pz bundle-games">${escapeHtml(o.bundleGames.join(', '))}</span>`;
+  }
+  if (statusKey !== 'notsteam') {
+    name += '<span class="tp">3rd-party</span>';
+  }
   let paid;
-  if (statusKey === 'refunded') paid = `<span class="pz">${escapeHtml(formatMoney(it.item))} refunded</span>`;
-  else if (statusKey === 'notsteam') {
+  if (statusKey === 'refunded') {
+    paid = `<span class="pz">${escapeHtml(formatMoney(it.item))} refunded</span>`;
+  } else if (statusKey === 'notsteam') {
     const amount = it.paid == null ? 'Price unknown' : o.cur ? o.cur + it.paid.toFixed(2) : formatMoney(it.paid);
     paid = `<span class="pz">${escapeHtml(amount)}</span>`;
-  } else if (o.giftReceived) paid = '<span class="pz">Free</span>';
-  else if (it.included) paid = '<span class="pz">Included</span>';
-  else if (it.paid == null) paid = '<span class="pz">Price unknown</span>';
-  else paid = (it.est ? '≈ ' : '') + escapeHtml(formatMoney(it.paid));
-
+  } else if (o.giftReceived) {
+    paid = '<span class="pz">Free</span>';
+  } else if (it.included) {
+    paid = '<span class="pz">Included</span>';
+  } else if (it.paid == null) {
+    paid = '<span class="pz">Price unknown</span>';
+  } else {
+    paid = (it.est ? '≈ ' : '') + escapeHtml(formatMoney(it.paid));
+  }
   const activated = it.lic && it.lic[0] !== o.date ? ` (${formatDate(it.lic[0])})` : '';
-
   return `<div class="tr kpr" role="row">
     <div class="dt" role="cell">${date}</div>
     <div class="nm" role="cell">${name}</div>
@@ -4985,21 +5175,22 @@ function purchaseRowHtml(o, it, statusKey, status, statusLabel, qty) {
     <div class="st ${status[1]}" role="cell">${statusLabel}${activated}</div>
   </div>`;
 }
-
-
 // The explanation under the 3rd-party purchases heading, one sentence per situation that applies.
 function purchaseNote({ kp, O, NS, tot, fees, keys, gifted, refd }) {
   const parts = [];
   let first = `${formatMoney(tot)} across ${pluralize(O.length, 'order')} for ${pluralize(keys, 'key')} (${gifted} of them gifted)`;
   if (fees > HALF_CENT) {
     first += `, including ${formatMoney(fees)} in service fees`;
-    if (O.some(o => o.feeUnknown)) first += ' (on the orders whose receipts list them)';
+    if (O.some(o => o.feeUnknown)) {
+      first += ' (on the orders whose receipts list them)';
+    }
   }
   parts.push(first + '.');
-  if (refd) parts.push(`That's after ${formatMoney(refd)} refunded.`);
+  if (refd) {
+    parts.push(`That's after ${formatMoney(refd)} refunded.`);
+  }
   parts.push("These were bought outside Steam, so they're not part of the Steam spending totals above; the boxes below add them together.");
   parts.push("Each key's price includes its share of the order's service fee and discount code; games from bundles split the bundle price evenly (marked ≈).");
-
   if (NS.length) {
     const names = NS.map(o => {
       const price = o.priceUnknown ? '' : ` (${o.cur ? o.cur + o.total.toFixed(2) : formatMoney(o.total)})`;
@@ -5010,18 +5201,19 @@ function purchaseNote({ kp, O, NS, tot, fees, keys, gifted, refd }) {
   O.filter(o => o.converted && o.rate).forEach(o => {
     parts.push(`${o.items[0].name.replace(/ \(paid .*\)$/, '')} was paid in another currency (${o.foreign}); it's converted at that day's exchange rate to ≈ ${formatMoney(o.total)}.`);
   });
-
   const noPrice = O.filter(o => o.priceUnknown && !o.subscription);
   if (noPrice.length) {
     const stores = [...new Set(noPrice.map(o => o.store).filter(Boolean))];
     const one = noPrice.length === 1;
     parts.push(`${pluralize(noPrice.length, 'purchase')}${stores.length ? ` (${stores.join(', ')})` : ''} ${one ? 'has' : 'have'} no price on record, so ${one ? "it isn't" : "they aren't"} in the total.`);
   }
-  if (O.some(o => o.dateEst)) parts.push("Where the order date isn't known, the activation date is shown (≈).");
-
+  if (O.some(o => o.dateEst)) {
+    parts.push("Where the order date isn't known, the activation date is shown (≈).");
+  }
   const giveaways = kp.orders.filter(o => o.freeGiveaway);
-  if (giveaways.length) parts.push(`${pluralize(giveaways.length, 'free giveaway')} ${giveaways.length === 1 ? 'is' : 'are'} shown as Free in the license list.`);
-
+  if (giveaways.length) {
+    parts.push(`${pluralize(giveaways.length, 'free giveaway')} ${giveaways.length === 1 ? 'is' : 'are'} shown as Free in the license list.`);
+  }
   const estimatedMonths = O.filter(o => o.subscription && o.subEst);
   if (estimatedMonths.length) {
     parts.push(`${pluralize(estimatedMonths.length, 'Humble Monthly / Choice month')} (${formatMoney(estimatedMonths.reduce((a, o) => a + o.total, 0))}) ` +
@@ -5030,7 +5222,6 @@ function purchaseNote({ kp, O, NS, tot, fees, keys, gifted, refd }) {
       "Each month's price is split across the keys activated the day it was bought (or the day after). " +
       "Only the months you actually bought are counted. Humble's order page doesn't show the charge itself, so promo codes or an annual plan would make the real amount lower.");
   }
-
   const received = kp.orders.filter(o => o.giftReceived && !o.freeGiveaway);
   if (received.length) {
     const names = received.map(o => (o.bundle || (o.items[0] && o.items[0].name) || '').replace(/ \(gift\)$/, ''));
@@ -5038,7 +5229,6 @@ function purchaseNote({ kp, O, NS, tot, fees, keys, gifted, refd }) {
   }
   return parts; // first sentence is the summary, the rest go under "How these are counted"
 }
-
 // Label and style for each state a 3rd-party key can be in.
 const PURCHASE_STATUS = {
   newer: ['Bought after your saved licenses page', 'st'],
@@ -5054,7 +5244,6 @@ const PURCHASE_STATUS = {
   missing: ['Not found on your account', 'warn'],
   refunded: ['Refunded', 'st'],
 };
-
 function renderKeyPurchases(kp, K2) {
   const on = !!(kp && kp.orders && kp.orders.length);
   $('#kpPanel').hidden = false;
@@ -5071,10 +5260,11 @@ function renderKeyPurchases(kp, K2) {
       o.id = newId();
     }
   });
-  const byDate = (a, b) => !a.date ? 1 : !b.date ? -1 : a.date < b.date ? -1 : 1;
+  // newest first, so a purchase you just added is at the top; orders with no known date go last
+  const byDate = (a, b) => !a.date ? 1 : !b.date ? -1 : a.date > b.date ? -1 : a.date < b.date ? 1 : 0;
   const OA = [...kp.orders].filter(o => !o.giftReceived).sort(byDate);
-  const O = OA.filter(o => !o.notSteam);          // Steam game purchases, counted in totals
-  const NS = OA.filter(o => o.notSteam);          // other platforms and non-game bundles, listed only
+  const O = OA.filter(o => !o.notSteam); // Steam game purchases, counted in totals
+  const NS = OA.filter(o => o.notSteam); // other platforms and non-game bundles, listed only
   const gifted = giftedKeys({ orders: O }, K2).reduce((a, g) => a + g.qty, 0);
   const tot = O.reduce((a, o) => a + o.total, 0);
   const fees = O.reduce((a, o) => a + (o.fee || 0), 0);
@@ -5093,7 +5283,7 @@ function renderKeyPurchases(kp, K2) {
       (T.hardware > HALF_CENT ? `<p class="hw">With ${escapeHtml(formatMoney(T.hardware))} of Steam hardware added, everything comes to ${escapeHtml(formatMoney(T.net + tot))}.</p>` : '');
   }
   const st = PURCHASE_STATUS;
-  const rowsAll = [], ALL = [...kp.orders].sort((a, b) => !a.date ? 1 : !b.date ? -1 : a.date < b.date ? -1 : 1);
+  const rowsAll = [], ALL = [...kp.orders].sort(byDate);
   ALL.forEach(o => o.items.forEach(it => {
     const sk = keyGiftStatus(it, o, K2), s = st[sk] || st.found, q = it.qty || 1;
     const lab = sk === 'found' && q > 1 ? `On your account + ${q - 1} gifted` : sk === 'notsteam' ? (/^(Software|Audio|Books|Comics)$/.test(o.notSteam) ? `Not a game (${o.notSteam.toLowerCase()})${it.lic ? ', on your account' : ''}` : `Not a Steam key (${o.notSteam})`) : s[0];
@@ -5119,7 +5309,7 @@ function ownedBefore(K, name, date) {
     return false;
   }
   const n = normalizeName(cleanName(name));
-  return K.list.some(l => l[0] < date && (normalizeName(l[1]) === n || normalizeName(l[2] || '') === n));
+  return K.list.some(l => l[0] && l[0] < date && (normalizeName(l[1]) === n || normalizeName(l[2] || '') === n));
 }
 function keyGiftStatus(it, o, K) {
   if (o.giftReceived) {
@@ -5164,17 +5354,19 @@ function giftedKeys(kp, K) {
   return out;
 }
 // which key activations (index in K.list) are tied to a purchase or gift from another store
-function linked(K, kp) {
+function keyPurchaseMap(K, kp) {
   const L = K.list, KPM = new Map();
   (kp && kp.orders || []).forEach(o => o.items.forEach(it => {
     if (!it.lic) {
       return;
     }
     const [d, n] = it.lic, nn = normalizeName(n);
-    const i = L.findIndex((l, j) => l[3] === 'k' && l[0] === d && !KPM.has(j) && (normalizeName(l[1]) === nn || normalizeName(l[2] || '') === nn || normalizeName(cleanName(n)) === normalizeName(l[1])));
+    const i = L.findIndex((l, j) => (l[3] === 'k' || l[3] === 'u') && l[0] === d && !KPM.has(j) && (normalizeName(l[1]) === nn || normalizeName(l[2] || '') === nn || normalizeName(cleanName(n)) === normalizeName(l[1])));
     if (i >= 0) {
       const q = it.qty || 1;
-      KPM.set(i, { ...it, paid: it.paid == null ? null : it.paid / q, item: it.item == null ? null : it.item / q, order: o });
+      KPM.set(i, {
+        ...it, paid: it.paid == null ? null : it.paid / q, item: it.item == null ? null : it.item / q, order: o
+      });
     }
   }));
   return KPM;
@@ -5184,10 +5376,13 @@ function keySpend(kp) {
   const O = (kp && kp.orders || []).filter(o => !o.notSteam && !o.giftReceived);
   return { total: O.reduce((a, o) => a + (o.total || 0), 0), orders: O.length };
 }
-const LICENSE_SOURCES = [
+const LICENSE_SOURCE_LIST = [
   ['store', 'Bought on Steam', '#66c0f4'], ['key', 'Product keys', '#e8b64a'], ['free', 'Free', '#6b7a88'], ['gift', 'Gifts received', '#ff6fa8']
 ];
 function buildKeyCharts(K) {
+  // only sources that appear in this data (without licenses pages that's just "Bought on Steam")
+  const LICENSE_SOURCES = LICENSE_SOURCE_LIST.filter(s => K.totals[s[0]] > 0);
+  $('#keysYearHelp').hidden = LICENSE_SOURCES.length < 2;
   const grid = GRID_COLOR, ink = INK_COLOR, kyrs = K.years.map(String), kOn = { store: true, key: true, free: true, gift: true };
   const kTot = i => LICENSE_SOURCES.reduce((a, s) => a + (kOn[s[0]] ? K.byYear[s[0]][i] : 0), 0);
   $('#lgKeys').innerHTML = LICENSE_SOURCES.map(s => `<button class="chip" aria-pressed="true" data-c="${s[0]}"><i style="background:${s[2]}"></i>${s[1]}</button>`).join('');
@@ -5243,7 +5438,7 @@ function buildKeyCharts(K) {
     const src2 = [
       ['s', 'Bought on Steam', '#66c0f4'], ['k', 'Product keys', '#e8b64a'], ['f', 'Free', '#6b7a88'], ['g', 'Gifts received', '#ff6fa8']
     ];
-    const f = K.list.filter(r => r[3] !== 'b'), [y0, m0] = K.first.split('-').map(Number), [y1, m1] = K.last.split('-').map(Number);
+    const f = K.list.filter(r => r[3] !== 'b' && r[3] !== 'u' && r[0]), [y0, m0] = K.first.split('-').map(Number), [y1, m1] = K.last.split('-').map(Number);
     const months = [];
     for (let y = y0, m = m0; y < y1 || (y === y1 && m <= m1); m++) {
       if (m > 12) {
@@ -5280,7 +5475,9 @@ function buildKeyCharts(K) {
             return;
           }
           const bottom = di ? ch.getDatasetMeta(di - 1).data[L].y : ch.chartArea.bottom;
-          items.push({ y: (el.y + bottom) / 2, t: `${ds.label}: ${cum[src2[di][0]][L].toLocaleString()}`, c: src2[di][2] });
+          items.push({
+            y: (el.y + bottom) / 2, t: `${ds.label}: ${cum[src2[di][0]][L].toLocaleString()}`, c: src2[di][2]
+          });
         });
         items.sort((a, b) => b.y - a.y);
         let last = Infinity;
@@ -5322,16 +5519,20 @@ function buildKeyCharts(K) {
       }
     }));
   })();
+  // without licenses pages there are no key activations, so the chart shows store purchases only
+  const hasKeys = K.monthKeys.some(v => v > 0);
+  $('#keyMonthTitle').textContent = hasKeys ? 'Keys vs. store purchases by month' : 'Store purchases by month';
+  $('#keyMonthLegend').hidden = !hasKeys;
+  const monthRows = [{ l: 'Keys', c: '#e8b64a', w: 700, v: i => String(K.monthKeys[i]) }, { l: 'Store', c: '#66c0f4', w: 700, v: i => String(K.monthStore[i]) }].slice(hasKeys ? 0 : 1);
+  const monthSets = [{
+    label: 'Keys activated', data: K.monthKeys, backgroundColor: '#e8b64a', borderWidth: 0, borderRadius: 2, barPercentage: .9, categoryPercentage: .75
+  }, {
+    label: 'Bought on Steam', data: K.monthStore, backgroundColor: '#66c0f4', borderWidth: 0, borderRadius: 2, barPercentage: .9, categoryPercentage: .75
+  }].slice(hasKeys ? 0 : 1);
   charts.push(new Chart($('#cKeyMonth'), {
-    type: 'bar', plugins: [rowsPlugin(() => [{ l: 'Keys', c: '#e8b64a', w: 700, v: i => String(K.monthKeys[i]) }, { l: 'Store', c: '#66c0f4', w: 700, v: i => String(K.monthStore[i]) }])], data: {
-      labels: MONTHS, datasets: [{
-        label: 'Keys activated', data: K.monthKeys, backgroundColor: '#e8b64a', borderWidth: 0, borderRadius: 2, barPercentage: .9, categoryPercentage: .75
-      }, {
-        label: 'Bought on Steam', data: K.monthStore, backgroundColor: '#66c0f4', borderWidth: 0, borderRadius: 2, barPercentage: .9, categoryPercentage: .75
-      }]
-    },
+    type: 'bar', plugins: [rowsPlugin(() => monthRows)], data: { labels: MONTHS, datasets: monthSets },
     options: {
-      maintainAspectRatio: false, layout: { padding: { bottom: rowPad(2) } }, plugins: { legend: { display: false } }, scales: {
+      maintainAspectRatio: false, layout: { padding: { bottom: rowPad(monthRows.length) } }, plugins: { legend: { display: false } }, scales: {
         x: { grid: { display: false }, ticks: { color: ink } }, y: { grid: { color: grid }, title: { display: true, text: 'Licenses' }, afterFit: yFit(52) }
       }
     }
@@ -5358,7 +5559,9 @@ function saveState() {
     return true;
   } catch (e) { // storage full: keep the purchases at least
     try {
-      localStorage.setItem(STORE_KEY, JSON.stringify({ v: 1, name: report.name, kp: report.kp || { orders: [] }, ov: report.ov || null, partial: true }));
+      localStorage.setItem(STORE_KEY, JSON.stringify({
+        v: 1, name: report.name, kp: report.kp || { orders: [] }, ov: report.ov || null, partial: true
+      }));
     } catch (e2) {
     }
     return false;
@@ -5390,14 +5593,14 @@ function unmatchedKeys() {
   if (!report.K) {
     return [];
   }
-  const M = linked(report.K, report.kp);
+  const M = keyPurchaseMap(report.K, report.kp);
   return report.K.list.map((l, i) => [i, l]).filter(([i, l]) => l[3] === 'k' && !M.has(i));
 }
 function nearbyKeys(date, span) {
   if (!report.K || !date) {
     return [];
   }
-  const M = linked(report.K, report.kp), lo = shiftDate(date, -1), hi = shiftDate(date, span);
+  const M = keyPurchaseMap(report.K, report.kp), lo = shiftDate(date, -1), hi = shiftDate(date, span);
   return report.K.list.map((l, i) => ({ i, l, taken: M.get(i) })).filter(x => (x.l[3] === 'k' || x.l[3] === 'f' || x.l[3] === 'b') && x.l[0] >= lo && x.l[0] <= hi);
 }
 function splitEven(total, n) {
@@ -5466,6 +5669,10 @@ function makeOrder(f) {
 function commitOrders(changed) {
   report.kp = report.kp || { orders: [] };
   const y = scrollY;
+  // prices and purchases feed the playtime figures, so work those out again
+  if (report.p) {
+    report.PL = analyzePlaytime(report.p, report.D.rows, report.K && report.K.list, report.kp, report.ov);
+  }
   renderReport(report.D, report.K, report.name);
   scrollTo(0, y);
   if (report.example) {
@@ -5565,7 +5772,7 @@ function searchKeys(q) {
     box.innerHTML = '';
     return;
   }
-  const M2 = linked(report.K, report.kp);
+  const M2 = keyPurchaseMap(report.K, report.kp);
   const hits = report.K.list.map((l, i) => ({ i, l, taken: M2.get(i) })).filter(x => x.l[3] !== 's' && (x.l[1].toLowerCase().includes(q) || (x.l[2] || '').toLowerCase().includes(q))).slice(0, 12);
   box.innerHTML = hits.map(x => `<button type="button" class="kadd" data-i="${x.i}" ${x.taken && !(editing && x.taken.order.id === editing) ? 'disabled' : ''}>+ ${escapeHtml(x.l[1])} <span>${formatDate(x.l[0])}</span></button>`).join('') || '<p class="vempty">No matching key activations.</p>';
   box.querySelectorAll('.kadd').forEach(b => b.onclick = () => {
@@ -5819,7 +6026,9 @@ function showImport(res) {
     };
     h += '<div class="tbl"><div class="tr th imp" role="row"><div>Date</div><div>Product</div><div>Store</div><div class="pr">Price</div></div>' +
       res.ok.slice(0, 8).map(previewRow).join('') + '</div>';
-    if (res.ok.length > 8) h += `<p class="vempty">…and ${res.ok.length - 8} more.</p>`;
+    if (res.ok.length > 8) {
+      h += `<p class="vempty">…and ${res.ok.length - 8} more.</p>`;
+    }
   }
   box.innerHTML = h;
   $('#impGo').hidden = !res.ok.length;
@@ -5898,8 +6107,84 @@ function renderSuggest() {
   box.querySelectorAll('.sgb').forEach(b => b.onclick = () => openBuy({ date: b.dataset.d, type: 'purchase' }));
 }
 
+// ================= editing a license row =================
+// Steam purchases get a price override; everything else is edited as a purchase (linked to that license).
+let priceEditKey = null;
+function editLicense(index) {
+  const K = report.K, l = K.list[index];
+  if (!l) {
+    return;
+  }
+  if (l[3] === 's') {
+    const LP = licensePrices(K, report.D.rows, report.p, report.ov), p = LP.get(index) || {};
+    priceEditKey = p.ovKey || 'lic:' + l[0] + '|' + (l[2] || l[1]);
+    const f = $('#priceForm');
+    f.reset();
+    $('#priceErr').textContent = '';
+    $('#priceWhat').textContent = `${l[1]}, bought on Steam${l[0] ? ' ' + formatDate(l[0]) : ''}. Your price replaces the estimate everywhere it's used: this list, the top games and the cost per hour.`;
+    if (p.paid != null) {
+      f.elements.paid.value = p.paid.toFixed(2);
+    }
+    if (p.list != null && p.list > (p.paid || 0)) {
+      f.elements.list.value = p.list.toFixed(2);
+    }
+    $('#priceReset').hidden = !(report.ov && report.ov[priceEditKey] && report.ov[priceEditKey].edited);
+    $('#priceDlg').showModal();
+    return;
+  }
+  const linkedOrder = keyPurchaseMap(K, report.kp).get(index);
+  if (linkedOrder) {
+    const o = linkedOrder.order;
+    const fm = o.form || {
+      type: o.subscription ? 'sub' : o.freeGiveaway ? 'free' : o.giftReceived ? 'gift' : o.notSteam ? 'nonsteam' : 'purchase',
+      date: o.date, name: o.bundle || o.items[0]?.name, store: o.store, total: o.priceUnknown ? null : o.total, currency: currency.cur,
+      gifted: o.items.filter(i => i.status === 'gifted').reduce((a, i) => a + (i.qty || 1), 0), platform: o.notSteam || '',
+      keys: o.items.filter(i => i.lic).map(i => i.lic),
+    };
+    openBuy({ ...fm, id: o.id });
+    return;
+  }
+  const type = l[3] === 'f' ? 'free' : l[3] === 'g' ? 'gift' : 'purchase';
+  openBuy({ type, date: l[0] || '', name: l[1], keys: [[l[0], l[2] || l[1]]] });
+}
+function initLicenseEditing() {
+  $('#krows').addEventListener('click', e => {
+    const b = e.target.closest('[data-lic]');
+    if (b) {
+      editLicense(+b.dataset.lic);
+    }
+  });
+  $('#priceDlg .x').onclick = () => $('#priceDlg').close();
+  const f = $('#priceForm');
+  f.onsubmit = e => {
+    e.preventDefault();
+    const num = v => v.trim() === '' ? null : (parseMoney(v) || { v: NaN }).v;
+    const paid = num(f.elements.paid.value), list = num(f.elements.list.value);
+    if (paid == null || Number.isNaN(paid) || paid < 0) {
+      $('#priceErr').textContent = 'Enter the price you paid as a number, like 12.99.';
+      return;
+    }
+    if (Number.isNaN(list) || (list != null && list < paid)) {
+      $('#priceErr').textContent = 'The list price must be a number no lower than what you paid, or left blank.';
+      return;
+    }
+    report.ov = report.ov || {};
+    report.ov[priceEditKey] = { paid, list, edited: true };
+    $('#priceDlg').close();
+    commitOrders('Price saved.');
+  };
+  $('#priceReset').onclick = () => {
+    if (report.ov) {
+      delete report.ov[priceEditKey];
+    }
+    $('#priceDlg').close();
+    commitOrders("Back to Steam's figure.");
+  };
+}
+
 // ================= wiring =================
 function initPurchaseUI() {
+  initLicenseEditing();
   $('#kpAdd').onclick = () => openBuy({});
   $('#kpImport').onclick = () => {
     $('#impFile').value = '';
@@ -6062,7 +6347,9 @@ function railMark() {
 
 // ================= files → report =================
 const files = []; // {name,kind,rows,account}
-const FILE_KIND_LABELS = { history: 'Purchase history', licenses: 'Licenses', games: 'Games', unknown: 'Not recognized' };
+const FILE_KIND_LABELS = {
+  history: 'Purchase history', licenses: 'Licenses', games: 'Games', unknown: 'Not recognized'
+};
 async function addFiles(list) {
   for (const f of list) {
     if (files.some(x => x.name === f.name && x.size === f.size)) {
@@ -6109,7 +6396,8 @@ function drawFiles() {
   if (!H.length && files.length) {
     msgs.push(['warn', 'Add your purchase history to build the replay. The licenses page on its own isn\'t enough.']);
   } else if (H.length && (!L.length || !Gf.length)) {
-    msgs.push(['warn', `Tip: add your ${[!L.length ? 'licenses page (product keys and library)' : null, !Gf.length ? 'games page (playtime)' : null].filter(Boolean).join(' and ')} too.`]);
+    const missing = [!L.length ? 'your licenses pages to split keys, free games and gifts apart' : null, !Gf.length ? 'your games page to see playtime and your real game count' : null].filter(Boolean);
+    msgs.push(['warn', `Optional: add ${missing.join(', and ')}. You can add them now or later.`]);
   }
   $('#imsg').innerHTML = msgs.map(m => `<div class="msg ${m[0]}">${escapeHtml(m[1])}</div>`).join('');
   $('#go').hidden = !H.length;
@@ -6123,7 +6411,7 @@ function runReport(h, l, name, example, p, ov, kp) {
     $('#imsg').innerHTML = '<div class="msg err">Something in the purchase history couldn\'t be read. Try saving the page again after it has fully loaded.</div>';
     return;
   }
-  const K = l && l.length ? analyzeLicenses(l, p) : null;
+  const K = l && l.length ? analyzeLicenses(l, p) : analyzeLicenses(synthesizeLicenses(D, p), p);
   let PL = null;
   if (p && p.games && p.games.length) {
     try {
