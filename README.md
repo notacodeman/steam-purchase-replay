@@ -11,6 +11,9 @@ Live at **https://steam.codeman.club**.
   browser storage so the report is there next time.
 - Purchases from other key stores can be added by hand or imported from a CSV/Excel sheet.
 - **Download report** saves a single self-contained HTML file with the data embedded, which opens without the site.
+  A downloaded report, anyone's, can also be dropped back onto the upload screen to import it.
+- Several reports can be kept in one browser. The upload screen lists them; the one picked there is the one that opens,
+  or that newly dropped pages are added to.
 
 ## Files
 
@@ -34,9 +37,9 @@ global scope, so a script can use anything defined in the ones before it.
 | `js/render.js` | Drawing the report sections |
 | `js/render-licenses.js` | The licenses section and 3rd-party purchases table |
 | `js/forms.js` | Add/edit purchase, edit price, spreadsheet import |
-| `js/storage.js` | Saving to and loading from browser storage |
+| `js/storage.js` | Saving to and loading from browser storage, one entry per report |
 | `js/export.js` | Share card image and the downloadable report |
-| `js/app.js` | Upload screen, building a report, section navigation, startup |
+| `js/app.js` | Upload screen and saved-report list, building a report, section navigation, startup |
 
 The row shapes produced by `js/parse.js` are also what gets saved in browsers and inside downloaded reports, so
 changing their field names breaks reports people already have.

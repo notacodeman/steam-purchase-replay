@@ -30,15 +30,19 @@
   <p class="lead">Save a couple of pages from your Steam account, drop them here, and get a breakdown of every purchase, sale, gift and key since you signed up.</p>
   <ol class="steps">
    <li><div><b>Save your purchase history</b><p>Open <a href="https://store.steampowered.com/account/history/" target="_blank" rel="noopener">store.steampowered.com/account/history</a> while signed in. Scroll to the bottom and click <b>Load more transactions</b> until the button goes away. Then press <kbd>Ctrl</kbd>+<kbd>S</kbd> (<kbd>⌘</kbd>+<kbd>S</kbd> on a Mac) and save it as <b>Webpage, Complete</b>.</p></div></li>
-   <li><div><b>Save your licenses</b> <span class="opt">optional, adds product keys, free games and gifts with their dates</span><p>Open <a href="https://store.steampowered.com/account/licenses/" target="_blank" rel="noopener">store.steampowered.com/account/licenses</a> and save it the same way. Steam splits your licenses into pages of about 100, so save every page (use the page numbers at the bottom) and drop them all in together.</p></div></li>
    <li><div><b>Save your games page</b> <span class="opt">optional, adds your real game count and playtime</span><p>Open <a href="https://steamcommunity.com/my/games/?tab=all" target="_blank" rel="noopener">steamcommunity.com/my/games</a>, wait for the list to finish loading, and save it the same way. That saved page also contains a short-lived sign-in token from Steam. This page never reads or sends it anywhere, but don't share that file with anyone.</p></div></li>
-   <li><div><b>Drop the .html files here</b><p>Only the .html files are needed; the folders saved next to them can be ignored. Steam needs to be set to English.</p></div></li>
+   <li><div><b>Save your licenses</b> <span class="opt">optional, adds product keys, free games and gifts with their dates</span><p>Open <a href="https://store.steampowered.com/account/licenses/" target="_blank" rel="noopener">store.steampowered.com/account/licenses</a> and save it the same way. Steam shows about 100 licenses at a time: save the page, click <b>Next</b> at the top right of the list, and save again until you reach the last page. There's no Back button, so save each page before moving on. Drop them all in together.</p></div></li>
+   <li><div><b>Drop the .html files here</b><p>Only the .html files are needed; the folders saved next to them can be ignored. Steam needs to be set to English. A report downloaded from this site, yours or someone else's, can be dropped in too.</p></div></li>
   </ol>
  </div>
  <div>
   <label class="drop" id="drop"><input type="file" id="files" accept=".htm,.html,text/html" multiple aria-describedby="dropHelp"><svg viewBox="0 0 48 48" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M24 32V10M15 19l9-9 9 9"/><path d="M8 30v8h32v-8"/></svg><div><b>Drop your saved Steam pages</b><span id="dropHelp">or click to choose files</span></div></label>
   <p class="privacy"><svg viewBox="0 0 16 16" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="3" y="7" width="10" height="7" rx="1.5"/><path d="M5.5 7V5a2.5 2.5 0 015 0v2"/></svg><span>Everything is worked out in your browser. Your files are never uploaded or stored anywhere.</span></p>
-  <div class="msg ok" id="resume" hidden><span id="resumeTxt"></span> <button class="linkbtn" id="resumeGo">Open it</button> · <button class="linkbtn" id="resumeForget">Remove it</button></div>
+  <div class="rlist" id="rlist" hidden>
+   <h3>Reports saved in this browser</h3>
+   <p class="kpct">Pick the report to open, or to add the pages you drop here to.</p>
+   <div role="radiogroup" aria-label="Report to open or add pages to" id="rlItems"></div>
+  </div>
   <ul class="flist" id="flist"></ul>
   <div id="imsg"></div>
   <button class="more go" id="go" hidden>Show my replay</button>
@@ -242,7 +246,7 @@
  <div id="impRes" aria-live="polite"></div>
  <div class="dlgbtns"><button class="more" id="impGo" hidden>Import these purchases</button></div>
 </dialog>
-<footer>Built in your browser from pages you saved from Steam. Nothing is uploaded. Not affiliated with Valve.</footer>
+<footer>Built in your browser from pages you saved from Steam. Nothing is uploaded. Not affiliated with Valve. <a href="https://github.com/notacodeman/steam-purchase-replay" target="_blank" rel="noopener">Source on GitHub</a></footer>
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.js"></script>

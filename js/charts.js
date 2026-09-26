@@ -1,5 +1,6 @@
-// All the Chart.js charts. Charts have no hover tooltips; values are written on the chart instead: totals above the
-// bars (topLabels) and a row of figures per series under the x axis (valueRows).
+// All the Chart.js charts. Values are written on the charts instead of shown on hover: totals above the bars
+// (topLabels) and a row of figures per series under the x axis (valueRows). The one exception is the licenses-over-time
+// chart, which has a month per point, too many to label, so it has a hover tooltip.
 
 let charts = [];
 
@@ -465,10 +466,27 @@ function buildLibraryGrowthChart(licenses) {
       ctx.restore();
     },
   };
+  // a vertical line at the hovered month
+  const hoverLine = {
+    id: 'hoverLine',
+    afterDatasetsDraw(chart) {
+      const active = chart.tooltip.getActiveElements();
+      if (!active.length) return;
+      const { ctx, chartArea } = chart;
+      ctx.save();
+      ctx.strokeStyle = 'rgba(255,255,255,.35)';
+      ctx.lineWidth = 1;
+      ctx.beginPath();
+      ctx.moveTo(active[0].element.x, chartArea.top);
+      ctx.lineTo(active[0].element.x, chartArea.bottom);
+      ctx.stroke();
+      ctx.restore();
+    },
+  };
   const everyOtherYear = months.length > 150;
   charts.push(new Chart($('#cLib'), {
     type: 'line',
-    plugins: [endLabels],
+    plugins: [endLabels, hoverLine],
     data: {
       labels: months,
       datasets: sources.map((s, i) => ({
@@ -479,7 +497,32 @@ function buildLibraryGrowthChart(licenses) {
     options: {
       maintainAspectRatio: false,
       layout: { padding: { right: 170 } },
-      plugins: { legend: { display: false } },
+      events: ['mousemove', 'mouseout', 'touchstart', 'touchmove'],
+      interaction: { mode: 'index', intersect: false },
+      plugins: {
+        legend: { display: false },
+        // the month's running count per source, top band first, and their total
+        tooltip: {
+          enabled: true,
+          backgroundColor: 'rgba(14,20,27,.95)',
+          borderColor: 'rgba(102,192,244,.3)',
+          borderWidth: 1,
+          padding: 10,
+          boxPadding: 4,
+          titleColor: COLORS.ink,
+          bodyColor: COLORS.text,
+          footerColor: COLORS.ink,
+          titleFont: { weight: 700 },
+          footerFont: { weight: 700 },
+          itemSort: (a, b) => b.datasetIndex - a.datasetIndex,
+          callbacks: {
+            title: items => formatMonth(months[items[0].dataIndex]),
+            label: item => `${item.dataset.label}: ${item.raw.toLocaleString()}`,
+            labelColor: item => ({ borderColor: item.dataset.borderColor, backgroundColor: item.dataset.borderColor }),
+            footer: items => `${sum(items, item => item.raw).toLocaleString()} licenses in all`,
+          },
+        },
+      },
       scales: {
         x: {
           grid: { display: false },

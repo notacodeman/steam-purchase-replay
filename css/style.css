@@ -2576,3 +2576,88 @@ details.method>summary:hover .plus {
   margin-bottom: 12px;
 }
 
+
+/* reports saved in this browser, on the upload screen */
+.rlist {
+  margin-top: 16px;
+}
+
+.rlist h3 {
+  margin: 0;
+  font-size: 1rem;
+  color: var(--ink);
+}
+
+.rlist .kpct {
+  margin: 2px 0 8px;
+}
+
+.ritem {
+  display: grid;
+  grid-template-columns: auto minmax(0,1fr) auto;
+  gap: 10px;
+  align-items: center;
+  margin-top: 4px;
+  padding: 9px 12px;
+  border-left: 3px solid transparent;
+  border-radius: 3px;
+  background: rgba(0,0,0,.25);
+  color: var(--text);
+  font-size: .95rem;
+  cursor: pointer;
+}
+
+.ritem:hover {
+  background: rgba(0,0,0,.35);
+}
+
+.ritem.on {
+  background: rgba(190,238,17,.1);
+  border-left-color: var(--sale-ink);
+  color: #e4f7a8;
+}
+
+.ritem input {
+  margin: 0;
+  accent-color: var(--sale-ink);
+}
+
+.ritem .rtxt {
+  min-width: 0;
+}
+
+.ritem .rtxt b {
+  display: block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: var(--ink);
+}
+
+.ritem .rtxt span {
+  font-size: .86rem;
+  color: var(--muted);
+}
+
+.ritem.on .rtxt span {
+  color: #cfe3a0;
+}
+
+.ritem .ract {
+  white-space: nowrap;
+  font-size: .9rem;
+}
+
+.ft.report {
+  background: rgba(182,156,255,.16);
+  color: #b69cff;
+}
+
+footer a {
+  color: var(--muted);
+  text-underline-offset: 3px;
+}
+
+footer a:hover {
+  color: #fff;
+}
