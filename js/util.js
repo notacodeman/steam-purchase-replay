@@ -173,9 +173,12 @@ const formatHours = hours => hours <= 0 ? 'never'
 // ---------- game and product names ----------
 
 // Reduces a product name to a comparable form: no trademark signs, accents, punctuation or bracketed notes,
-// lower case. "S.T.A.L.K.E.R.: Shadow of Chernobyl™ (2007)" → "stalker shadow of chernobyl 2007".
+// lower case. "S.T.A.L.K.E.R.: Shadow of Chernobyl™ (2007)" → "stalker shadow of chernobyl 2007". A possessive keeps
+// its s ("Billie's" = "Billies") and "&" reads as "and".
 const normalizeName = s => s
   .replace(/[™®©]/g, '')
+  .replace(/['’](?=s\b)/gi, '')
+  .replace(/&/g, ' and ')
   .replace(/\b([A-Za-z])\.(?=[A-Za-z]\.)/g, '$1')
   .replace(/\b([A-Za-z])\.(?=\s|$|\d)/g, '$1')
   .normalize('NFKD').replace(/[̀-ͯ]/g, '')
@@ -215,7 +218,7 @@ function cleanLicenseName(name) {
 // "Nidhogg Store", "Syberia 3 Copy", "Jedi Outcast Comp", "Intruder for Beta Testing".
 const LICENSE_PREFIX = /^(?:holiday sale \d{4} gift|summer sale prize) /;
 const LICENSE_SUFFIX = / (?:comp|humble|humble monthly|digital distribution|all languages|steam|store|gift|gift copy|copy|pre ?order|pre ?order gift|pre ?purchase|free|free for a limited time|free on demand|for beta testing|beta testing|launch|base game|worldwide package)$/;
-const EDITION_WORDS = / (?:collection|bundle|complete pack|complete season|two pack|double pack|\d pack|goty|game of the (?:year|century)|remastered|redux|enhanced|ultimate|deluxe|gold|legendary|definitive|premium|anniversary|director s cut)$/;
+const EDITION_WORDS = / (?:collection|bundle|complete pack|complete season|two pack|double pack|\d pack|goty|game of the (?:year|century)|remastered|redux|enhanced|ultimate|deluxe|gold|legendary|definitive|premium|anniversary|directors cut)$/;
 const ROMAN_NUMERALS = { ii: '2', iii: '3', iv: '4', v: '5' };
 
 // Looser forms of a normalized name, most specific first, for when a license and a game differ only by those words
@@ -236,6 +239,10 @@ function looseNameKeys(normalized) {
   const withYearsAndNumerals = keys.flatMap(k => [k, k.replace(/ (?:19|20)\d\d$/, ''), k.replace(/\b(ii|iii|iv|v)\b/g, r => ROMAN_NUMERALS[r])]);
   return [...new Set(withYearsAndNumerals)].filter(k => k.length >= 4);
 }
+
+// A game sold with its soundtrack: "Pony Island + Soundtrack", "Gone Home + Original Soundtrack",
+// "Deadlight Game + Soundtrack Bundle", "Tiny and Big: Grandpa's Leftovers Soundtrack Edition".
+const WITH_SOUNDTRACK = /\s*\+\s*(?:the\s+)?(?:original\s+)?soundtrack$|\s+game\s*\+\s*soundtrack\s+bundle$|\s+soundtrack\s+edition$/i;
 
 const ADDON_WORDS = /(edition|soundtrack|ost|dlc|season pass|pack|bundle|upgrade|expansion|artbook)/;
 

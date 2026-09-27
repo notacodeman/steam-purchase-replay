@@ -103,11 +103,11 @@ function renderLicenseTable(licenses) {
     };
   }
 
-  // games on the games page that couldn't be tied to one license; listed after the licenses so they can be matched
+  // games on the games page that couldn't be tied to a license; listed after the licenses so they can be matched
   const unmatched = report.playtime ? report.playtime.unmatched : [];
   $('#kUnmatched').hidden = !unmatched.length;
   if (unmatched.length) {
-    $('#kUnmatched').innerHTML = `<b>${unmatched.length.toLocaleString()}</b> ${unmatched.length === 1 ? 'game' : 'games'} on your games page couldn't be matched to a single license, so ${unmatched.length === 1 ? 'it isn\'t' : 'they aren\'t'} in the never-played figures. They're listed at the end; use Edit to pick the license each came from. <button class="linkbtn" type="button" id="kUnmatchedGo">Show only these</button>`;
+    $('#kUnmatched').innerHTML = `<b>${unmatched.length.toLocaleString()}</b> ${unmatched.length === 1 ? 'game' : 'games'} on your games page couldn't be matched to a license, so ${unmatched.length === 1 ? 'it isn\'t' : 'they aren\'t'} in the never-played figures. They're listed at the end; use Edit to pick the license each came from. <button class="linkbtn" type="button" id="kUnmatchedGo">Show only these</button>`;
     $('#kUnmatchedGo').onclick = () => {
       $('#ks').value = 'unmatched';
       $('#ks').onchange();

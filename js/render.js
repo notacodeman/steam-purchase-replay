@@ -612,7 +612,7 @@ function renderNeverPlayed(playtime) {
         <div class="np-sub">${never.toLocaleString()} of ${games.toLocaleString()} games never played</div>
       </div>`;
     }).join('');
-  $('#pSrcNote').textContent = `Share of each source's games with no playtime. Based on the ${playtime.srcMatched.toLocaleString()} of ${playtime.games.toLocaleString()} games that could be matched to a single license by name.`
+  $('#pSrcNote').textContent = `Share of each source's games with no playtime. Based on the ${playtime.srcMatched.toLocaleString()} of ${playtime.games.toLocaleString()} games that could be matched to a license.`
     + (report.licenses && report.licenses.synthetic ? ' Add your licenses pages to split keys, free games and gifts apart.' : '');
 }
 
