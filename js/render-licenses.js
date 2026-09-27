@@ -91,8 +91,21 @@ function renderLicenseTable(licenses) {
   // keys (or, without licenses pages, anything not bought on Steam) with no purchase behind them anywhere
   const isUnaccounted = (license, i) => (license.source === 'key' || license.source === 'other') && !purchased.has(i);
   const unaccounted = sum(list, (license, i) => isUnaccounted(license, i) ? 1 : 0);
+  // what a row lacks that it should have: every license has a date, and anything paid for has a price
+  const missingOf = (license, i) => {
+    const missing = [];
+    if (!license.date) missing.push('date');
+    const price = prices.get(i);
+    const key = purchased.get(i);
+    const paidFor = key && !key.included && !key.order.giftReceived && !key.order.notSteam;
+    if ((license.source === 'store' && (!price || price.none)) || (paidFor && key.paid == null)) missing.push('price');
+    return missing;
+  };
+  const withMissing = sum(list, (license, i) => missingOf(license, i).length ? 1 : 0);
 
   $('#ksNa').hidden = !unaccounted;
+  $('#ksMiss').hidden = !withMissing;
+  $('#ksMiss').textContent = `Missing a price or date (${withMissing.toLocaleString()})`;
   $('#kUnacc').hidden = !unaccounted;
   if (unaccounted) {
     const what = licenses.synthetic ? 'keys, free games or gifts' : 'keys bought elsewhere or given to you';
@@ -139,6 +152,7 @@ function renderLicenseTable(licenses) {
       if (game) return source === 'unmatched';
       if (source === 'purchased') return purchased.has(index);
       if (source === 'unaccounted') return isUnaccounted(license, index);
+      if (source === 'missing') return missingOf(license, index).length > 0;
       return license.source === source;
     };
     const matchesQuery = ({ license, index, game }) => !query
@@ -152,7 +166,7 @@ function renderLicenseTable(licenses) {
     $('#krows').innerHTML = rows.length
       ? rows.slice(0, limit).map(({ license, index, game }) => game
         ? unmatchedGameRowHtml(game)
-        : licenseRowHtml(license, index, licensePriceHtml(license, index, prices, purchased), purchased.get(index), isUnaccounted(license, index))).join('')
+        : licenseRowHtml(license, index, licensePriceHtml(license, index, prices, purchased), purchased.get(index), isUnaccounted(license, index), missingOf(license, index))).join('')
       : '<div class="kempty">Nothing matches. Try a shorter search or pick All years.</div>';
     $('#kcnt').textContent = `${rows.length.toLocaleString()} of ${entries.length.toLocaleString()}`;
     $('#kmore').hidden = rows.length <= PAGE_SIZE;
@@ -172,13 +186,14 @@ function renderLicenseTable(licenses) {
   draw();
 }
 
-function licenseRowHtml(license, index, priceHtml, keyPurchase, unaccounted) {
+function licenseRowHtml(license, index, priceHtml, keyPurchase, unaccounted, missing = []) {
   const source = LICENSE_SOURCES[license.source];
   // a license named in another script (e.g. Chinese) also shows the name the key was sold under
   const soldAs = keyPurchase && normalizeName(keyPurchase.name) !== normalizeName(license.name) && !/[a-z]/i.test(license.name)
     ? ` <span class="pz">(${escapeHtml(keyPurchase.name)})</span>`
     : '';
-  return `<div class="tr k${unaccounted ? ' unacc' : ''}" role="row">
+  const missingNote = missing.length ? ` title="Missing its ${missing.join(' and ')}. Use Edit to add it."` : '';
+  return `<div class="tr k${unaccounted ? ' unacc' : ''}${missing.length ? ' miss' : ''}" role="row"${missingNote}>
     <div class="dt" role="cell">${formatDate(license.date)}</div>
     <div class="nm" role="cell" title="${escapeHtml(license.steamName)}">${escapeHtml(license.name)}${soldAs}<button class="oedit" data-lic="${index}" aria-label="Edit ${escapeHtml(license.name)}">Edit</button></div>
     <div class="pr" role="cell">${priceHtml}</div>
