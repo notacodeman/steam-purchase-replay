@@ -77,7 +77,7 @@ function parseItems(itemsCell) {
     for (const link of copy.querySelectorAll('a')) {
       if (/shipment/i.test(link.textContent)) link.remove();
     }
-    const name = textOf(copy).replace(/\s*View Shipment Details\s*$/i, '');
+    const name = decodeEntities(textOf(copy).replace(/\s*View Shipment Details\s*$/i, ''));
     let to = null;
     let sub = null;
     const next = div.nextElementSibling;
@@ -135,7 +135,8 @@ function parseLicensesPage(doc) {
   return rows;
 }
 
-// Some license names arrive double-escaped ("&amp;trade;"). A detached <textarea> decodes them without running markup.
+// Some license and item names arrive double-escaped ("&amp;trade;", "Soundtrack &amp; Manga"). A detached <textarea>
+// decodes them without running markup.
 function decodeEntities(text) {
   const textarea = document.createElement('textarea');
   for (let i = 0; i < 3 && /&[#a-z0-9]+;/i.test(text); i++) {

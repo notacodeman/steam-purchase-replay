@@ -13,6 +13,8 @@ const DISCOUNT_BUCKETS = ['Full price', '1–25%', '26–50%', '51–75%', '76�
 
 function analyzeHistory(historyRows, gamesPage) {
   const sorted = [...historyRows].sort((a, b) => a.date < b.date ? -1 : a.date > b.date ? 1 : 0);
+  // pages parsed before item names were decoded (see parseItems) still hold "&amp;"
+  sorted.forEach(r => (r.items || []).forEach(item => item.name = decodeEntities(item.name)));
   const money = accountCurrency(sorted);
   convertWalletCharges(sorted, money.symbol);
 
