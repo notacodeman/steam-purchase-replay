@@ -5,10 +5,31 @@
 const json = (body, status = 200) =>
   new Response(JSON.stringify(body), { status, headers: { 'Content-Type': 'application/json', 'Cache-Control': 'no-store' } });
 
+// The email from the token Access adds to every request it lets through. Only read, not verified: Access has already
+// checked it before the request got here.
+function tokenEmail(request) {
+  const token = request.headers.get('Cf-Access-Jwt-Assertion');
+  try {
+    const payload = token.split('.')[1].replace(/-/g, '+').replace(/_/g, '/');
+    return JSON.parse(atob(payload)).email || null;
+  } catch (_) {
+    return null;
+  }
+}
+
 export async function onRequestGet({ request }) {
-  const email = request.headers.get('Cf-Access-Authenticated-User-Email');
+  const email = request.headers.get('Cf-Access-Authenticated-User-Email') || tokenEmail(request);
   if (!email) {
-    return json({ ok: false, error: "This didn't come through Cloudflare Access, so /api/admin/* isn't protected. Add it to the Access application." }, 403);
+    // say what did arrive, to tell a path missing from the Access application from a sign-in cookie not being sent
+    const seen = [
+      request.headers.has('Cf-Access-Jwt-Assertion') ? 'an Access token without an email' : 'no Access token',
+      /(?:^|;\s*)CF_Authorization=/.test(request.headers.get('Cookie') || '') ? 'the sign-in cookie' : 'no sign-in cookie',
+    ];
+    return json({
+      ok: false,
+      error: `This didn't come through Cloudflare Access (the request had ${seen.join(' and ')}), so /api/admin/* ` +
+        "isn't protected. Add it to the Access application.",
+    }, 403);
   }
   const url = new URL(request.url);
   const next = url.searchParams.get('next');
