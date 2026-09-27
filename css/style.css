@@ -68,28 +68,20 @@ a {
   flex-wrap: wrap;
 }
 
-/* a thin strip above the nav linking back to the main site */
-.topbar {
-  background: #0e1116;
-  font-size: .82rem;
-}
-
-.topbar .in {
-  max-width: 1120px;
-  margin: 0 auto;
-  padding: 5px clamp(16px,4vw,32px);
-}
-
-.topbar a {
+/* back to the main site, at the start of the nav */
+.nav .home {
   color: var(--muted);
+  font-size: .88rem;
   text-decoration: none;
+  padding-right: 22px;
+  border-right: 1px solid rgba(255,255,255,.12);
 }
 
-.topbar a:hover {
+.nav .home:hover {
   color: var(--blue);
 }
 
-.topbar a:focus-visible {
+.nav .home:focus-visible {
   outline: 2px solid #fff;
   outline-offset: 2px;
 }
@@ -118,6 +110,28 @@ a {
 .logo svg {
   width: 28px;
   height: 28px;
+}
+
+/* on phones, tighter spacing keeps the link and the logo on one line */
+@media (max-width: 480px) {
+  .nav .in {
+    gap: 12px 14px;
+  }
+
+  .nav .home {
+    padding-right: 14px;
+  }
+
+  .logo {
+    gap: 8px;
+    font-size: .95rem;
+    letter-spacing: .04em;
+  }
+
+  .logo svg {
+    width: 24px;
+    height: 24px;
+  }
 }
 
 .nav .crumbs {
