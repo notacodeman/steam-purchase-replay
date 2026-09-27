@@ -128,7 +128,9 @@ async function checkSignIn() {
   let who = null;
   try {
     const response = await fetch('/api/admin/whoami', { redirect: 'manual', cache: 'no-store' });
-    if (response.type !== 'opaqueredirect') who = await response.json();
+    if (response.status === 404) {
+      who = { ok: false, error: "/api/admin/whoami doesn't exist, so the site's Functions (the functions/ folder) weren't deployed. Check the Cloudflare project's deployment." };
+    } else if (response.type !== 'opaqueredirect') who = await response.json();
   } catch (_) { /* not signed in, or offline */ }
   if (!who || !who.ok) {
     showGate(who && who.error);
