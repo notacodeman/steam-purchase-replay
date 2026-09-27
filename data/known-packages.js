@@ -71,7 +71,9 @@ const KNOWN_PACKAGES = [
     'Warhammer 40,000: Dawn of War II - Chaos Rising', 'Warhammer 40,000: Dawn of War II - Retribution']],
   [['Warhammer 40,000: Dawn of War - Game of the Year Edition'], ['Warhammer 40,000: Dawn of War - Anniversary Edition',
     'Warhammer 40,000: Dawn of War - Winter Assault']],
-  [['THQ Collection (Summer 2012)'], ['Titan Quest', 'Titan Quest: Immortal Throne', 'Titan Quest Anniversary Edition',
+  [['THQ Collection (Summer 2012)'], ['S.T.A.L.K.E.R.: Shadow of Chernobyl',
+    'S.T.A.L.K.E.R.: Shadow of Chornobyl - Enhanced Edition', 'Titan Quest', 'Titan Quest: Immortal Throne',
+    'Titan Quest Anniversary Edition',
     'Company of Heroes - Legacy Edition', 'Company of Heroes: Opposing Fronts',
     'Warhammer 40,000: Dawn of War II - Anniversary Edition', 'Warhammer 40,000: Dawn of War II - Chaos Rising',
     'Warhammer 40,000: Dawn of War II - Retribution', 'Warhammer 40,000: Space Marine - Anniversary Edition', 'Metro 2033',
@@ -92,7 +94,7 @@ const KNOWN_PACKAGES = [
   [['Serious Sam Double D Comp'], ['Serious Sam Double D XXL']],
   [['Cthulhu Saves the World & Breath of Death VII Double Pack'], ['Cthulhu Saves the World', 'Breath of Death VII']],
   [['Deponia: The Complete Journey'], ['Deponia', 'Chaos on Deponia', 'Goodbye Deponia']],
-  [['The Incredible Adventures of Van Helsing Anthology'], ['The Incredible Adventures of Van Helsing',
+  [['The Incredible Adventures of Van Helsing Anthology'], ['Deathtrap', 'The Incredible Adventures of Van Helsing',
     'The Incredible Adventures of Van Helsing II', 'The Incredible Adventures of Van Helsing III']],
   [['The Daedalic Armageddon Bundle', 'Armageddon Bundle'], ['Deponia', 'Chaos on Deponia', 'Goodbye Deponia',
     'The Whispered World Special Edition', 'The Dark Eye: Chains of Satinav', 'A New Beginning - Final Cut', 'Memoria',
@@ -273,6 +275,9 @@ const KNOWN_PACKAGES = [
     'S.T.A.L.K.E.R.: Shadow of Chornobyl - Enhanced Edition']],
 
   // ---------- games that come with another one ----------
+  [['SpeedRunners'], ['SpeedRunners', 'No Time To Explain Remastered']],
+  // SEGA's Make War Not Love 3 promotion, Feb 2016
+  [['Make War Not Love 3 - Prize 1'], ['Hell Yeah!', 'Hell Yeah! Wrath of the Dead Rabbit']],
   [['Shadow Warrior', 'Shadow Warrior: Special Edition'], ['Shadow Warrior', 'Viscera Cleanup Detail: Shadow Warrior']],
   [['Resident Evil 3'], ['Resident Evil 3', 'Resident Evil Resistance']],
   [['ARK: Survival Evolved'], ['ARK: Survival Evolved', 'ARK: Survival Of The Fittest']],
