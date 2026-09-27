@@ -14,6 +14,7 @@
 // KNOWN_BUNDLES: bundles sold as separate keys (Humble Choice months, store bundles). When two or more of a visitor's
 // unlinked key activations are games from one, it's suggested as the purchase they came from (bundleSuggestions in
 // purchases.js). date is when it went on sale; only keys activated from then on count. price is null when unknown.
+// Editing an unlinked key also lists the bundles and packs its game is in (keySourceHints in purchases.js).
 //
 // FREE_TO_PLAY: games anyone can add for free. When one has no license of its own it's counted as free.
 

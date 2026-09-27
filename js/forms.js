@@ -59,9 +59,49 @@ function openPurchaseForm(fields = {}) {
   purchaseForm.picked = new Set((fields.keys || []).map(([date, name]) => date + '|' + name));
   purchaseForm.extra = [];
   purchaseForm.autoPick = !fields.keys;
+  drawKeyHints(fields.hintFor);
   updatePurchaseForm();
   $('#buyDlg').showModal();
   setTimeout(() => form.elements.date.focus(), 30);
+}
+
+// For an unlinked key: known bundles and packs it may have come from, and the Steam sale it was activated around
+// (keySourceHints in purchases.js). "Use this" fills in the bundle and ticks the other keys from it.
+function drawKeyHints(license) {
+  const box = $('#buyHints');
+  const hints = license ? keySourceHints(license, unlinkedKeys(report.licenses)) : null;
+  box.hidden = !hints || !(hints.bundles.length || hints.packs.length || hints.sale);
+  if (box.hidden) return;
+  const others = keys => keys.length > 1
+    ? `<span class="s">Also unlinked from it: ${escapeHtml(keys.slice(1, 5).map(l => l.name).join(', ') + (keys.length > 5 ? `, +${keys.length - 5} more` : ''))}</span>`
+    : '';
+  const choices = [
+    ...hints.bundles.map(b => ({ fields: { type: b.kind === 'sub' ? 'sub' : 'purchase', name: b.name, store: b.store || '', total: b.price },
+      keys: b.keys, text: `<b>${escapeHtml(b.name)}</b> · ${escapeHtml(b.store || 'bundle')}${b.price != null ? ' · ' + formatMoney(b.price) : ''}, on sale from ${formatDate(b.date)}` })),
+    ...hints.packs.map(p => ({ fields: { type: 'purchase', name: p.name, store: p.store },
+      keys: p.keys, text: `<b>${escapeHtml(p.name)}</b>${p.store ? ' · ' + escapeHtml(p.store) : ''} · ${pluralize(p.games.length, 'game')}` })),
+  ];
+  const sale = hints.sale;
+  const saleText = sale
+    ? `<p class="kpct">Activated ${license.date <= sale.end ? 'during' : 'just after'} Steam's ${sale.type} Sale ${yearOf(sale.start)} (${formatDate(sale.start)} to ${formatDate(sale.end)}). Key stores usually run their own sales at the same time.</p>`
+    : '';
+  box.innerHTML = `<h4>Where this key may have come from</h4>`
+    + (choices.length ? `<p class="kpct">${escapeHtml(license.name)} is in ${choices.length === 1 ? 'a known pack or bundle' : 'these known packs and bundles'}. Check the date and price before saving.</p>`
+      + `<div class="sgl">${choices.map((c, i) => `<div class="sg"><div>${c.text}${others(c.keys)}</div><button class="tbtn" type="button" data-h="${i}">Use this</button></div>`).join('')}</div>`
+      : '')
+    + saleText;
+  box.querySelectorAll('[data-h]').forEach(button => button.onclick = () => {
+    const { fields, keys } = choices[+button.dataset.h];
+    const form = $('#buyForm');
+    for (const [name, value] of Object.entries(fields)) form.elements[name].value = value ?? '';
+    const purchased = keyPurchaseMap(report.licenses, report.keyPurchases);
+    for (const key of keys) {
+      const index = report.licenses.list.indexOf(key);
+      purchaseForm.extra.push({ index, license: key, linked: purchased.get(index) });
+      purchaseForm.picked.add(keyId(key));
+    }
+    updatePurchaseForm();
+  });
 }
 
 // Key activations from the day before to `daysAfter` days after a date, with the purchase each is linked to.
@@ -236,7 +276,10 @@ function editLicense(index) {
     return;
   }
   const type = license.source === 'free' ? 'free' : license.source === 'gift' ? 'gift' : 'purchase';
-  openPurchaseForm({ type, date: license.date || '', name: license.name, keys: [[license.date, license.steamName]] });
+  openPurchaseForm({
+    type, date: license.date || '', name: license.name, keys: [[license.date, license.steamName]],
+    hintFor: license.source === 'key' ? license : null,
+  });
 }
 
 function savePrice(event) {
