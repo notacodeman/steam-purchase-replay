@@ -1,5 +1,5 @@
 -- D1 schema for the admin page. Run once:
---   npx wrangler d1 execute steam-replay --remote --file functions/schema.sql
+--   npx wrangler d1 execute steam-purchase-replay --remote --file functions/schema.sql
 -- Lists (license names, games) are stored as JSON arrays of strings.
 
 CREATE TABLE IF NOT EXISTS packages (

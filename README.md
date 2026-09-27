@@ -64,10 +64,10 @@ the current lists in that file's format, to commit as the new built-in copy.
 
 ### Setting it up
 
-1. Create the database: Cloudflare dashboard → Storage & Databases → D1 → Create, named `steam-replay`.
+1. Create the database: Cloudflare dashboard → Storage & Databases → D1 → Create, named `steam-purchase-replay`.
 2. Create the tables: open the database's Console, paste `functions/schema.sql` and run it.
 3. Bind it: Workers & Pages → the steam-purchase-replay project → Settings → Bindings → Add → D1 database,
-   variable name `DB`, database `steam-replay`. Redeploy so the binding takes effect.
+   variable name `DB`, database `steam-purchase-replay`. Redeploy so the binding takes effect.
 4. Lock it with Cloudflare Access, as on the headphones site: Zero Trust → Access → Applications → Add →
    Self-hosted, domain `steam.codeman.club` with paths `admin`, `admin.html` and `api/admin/*`, and an Allow policy
    with an Emails selector listing who may use the admin. The site itself doesn't check who's signed in, so these
