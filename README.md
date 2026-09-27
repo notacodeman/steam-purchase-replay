@@ -25,7 +25,7 @@ global scope, so a script can use anything defined in the ones before it.
 | `index.html` | The page markup |
 | `css/style.css` | All styles |
 | `data/steam-sales.js` | Dates of Steam's seasonal sales (see below) |
-| `data/known-packages.js` | Built-in copy of the known packs, bundles and free-to-play games (see Admin below) |
+| `data/known-packages.js` | Built-in copy of the known packs, bundles and free-to-play games |
 | `js/util.js` | Shared helpers: DOM, dates, money, name matching, colours |
 | `js/parse.js` | Reading the saved Steam pages into rows |
 | `js/analyze-history.js` | Purchase history → totals, per-year spending, savings, gifts, hardware, sale timing |
@@ -46,38 +46,6 @@ global scope, so a script can use anything defined in the ones before it.
 
 The row shapes produced by `js/parse.js` are also what gets saved in browsers and inside downloaded reports, so
 changing their field names breaks reports people already have.
-
-## Admin
-
-`/admin.html` edits what the site matches against, stored in a Cloudflare D1 database:
-
-- **Packs**: license names and the games they give (The Orange Box → Half-Life 2, Portal…), renamed games and
-  remasters. Used to work out where each game on the games page came from.
-- **Bundles**: Humble Choice months and other bundles with their games. Unlinked key activations that are games from
-  one are suggested as that purchase, with the name, store and price filled in.
-- **Free to play**: games counted as free when they have no license of their own.
-- **History**: every change, with Undo.
-
-The site loads the lists from `/api/known-data` when it starts and falls back to `data/known-packages.js` if that
-fails. A downloaded report keeps the lists it was saved with. "Download as known-packages.js" on the admin page writes
-the current lists in that file's format, to commit as the new built-in copy.
-
-### Setting it up
-
-1. Create the database: Cloudflare dashboard → Storage & Databases → D1 → Create, named `steam-purchase-replay`.
-2. Create the tables: open the database's Console, paste `functions/schema.sql` and run it.
-3. Bind it: Workers & Pages → the steam-purchase-replay project → Settings → Bindings → Add → D1 database,
-   variable name `DB`, database `steam-purchase-replay`. Redeploy so the binding takes effect.
-4. Lock it with Cloudflare Access, as on the headphones site: Zero Trust → Access → Applications → Add →
-   Self-hosted, domain `steam.codeman.club` with paths `admin`, `admin.html` and `api/admin/*`, and an Allow policy
-   with an Emails selector listing who may use the admin. The site itself doesn't check who's signed in, so these
-   paths must all be covered. Pages serves `admin.html` at `/admin`, which is why both are listed.
-
-   The admin page stays blank behind a Sign in button until `/api/admin/whoami` (behind Access) says who's signed
-   in; the button opens that URL so Access can show its login, then sends you back to `/admin`. If whoami says the
-   request didn't come through Access, `api/admin/*` isn't covered by the application.
-5. Open `https://steam.codeman.club/admin.html` and click "Load the built-in list".
-
 
 ## Updating the sale dates
 
