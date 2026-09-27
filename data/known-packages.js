@@ -33,6 +33,8 @@ const KNOWN_PACKAGES = [
   [['Half-Life Complete'], ['Half-Life', 'Half-Life: Opposing Force', 'Half-Life: Blue Shift', 'Half-Life 2',
     'Half-Life 2: Episode One', 'Half-Life 2: Episode Two']],
   [['Counter-Strike: Global Offensive'], ['Counter-Strike 2']],
+  [['Half-Life 2'], ['Half-Life 2', 'Half-Life 2: Lost Coast']],
+  [['Counter-Strike: Condition Zero'], ['Counter-Strike: Condition Zero', 'Counter-Strike: Condition Zero Deleted Scenes']],
 
   // ---------- id Software ----------
   [['Quake Collection', 'Quake 2007 Collection'], ['Quake', 'Quake Mission Pack 1: Scourge of Armagon',
@@ -134,6 +136,9 @@ const KNOWN_PACKAGES = [
   [['H1Z1'], ['Z1 Battle Royale', 'H1Z1: Test Server']],
   [["PLAYERUNKNOWN'S BATTLEGROUNDS", "PLAYERUNKNOWN'S BATTLEGROUNDS - Worldwide Package"], ['PUBG: BATTLEGROUNDS']],
   [['Grand Theft Auto V'], ['Grand Theft Auto V Legacy', 'Grand Theft Auto V Enhanced']],
+  // GTA IV's own app became The Complete Edition in 2020; owners of either got it
+  [['Grand Theft Auto IV', 'Grand Theft Auto: Episodes from Liberty City'],
+    ['Grand Theft Auto IV: The Complete Edition']],
   [['Battlefield REDSEC'], ['Battlefield 6']],
   [['Battlefield 1 Revolution'], ['Battlefield 1']],
   [['Call of Duty: Warzone'], ['Call of Duty']],
@@ -270,12 +275,29 @@ const KNOWN_PACKAGES = [
   [['BloodRayne'], ['BloodRayne: Terminal Cut']],
   [['BloodRayne 2'], ['BloodRayne 2: Terminal Cut']],
   [['Nongünz'], ['Nongünz', 'Nongunz: Doppelganger Edition']],
-  [['Red Faction Guerrilla Re-Mars-tered'], ['Red Faction Guerrilla Re-Mars-tered', 'Red Faction: Guerrilla Steam Edition']],
+  [['Red Faction Guerrilla Re-Mars-tered'], ['Red Faction Guerrilla Re-Mars-tered',
+    'Red Faction: Guerrilla Steam Edition']],
+  // the Enhanced Editions (2025) were given to owners of the originals
   [['S.T.A.L.K.E.R.: Shadow of Chernobyl'], ['S.T.A.L.K.E.R.: Shadow of Chernobyl',
     'S.T.A.L.K.E.R.: Shadow of Chornobyl - Enhanced Edition']],
+  [['S.T.A.L.K.E.R.: Clear Sky'], ['S.T.A.L.K.E.R.: Clear Sky', 'S.T.A.L.K.E.R.: Clear Sky - Enhanced Edition']],
+  [['S.T.A.L.K.E.R.: Call of Pripyat'], ['S.T.A.L.K.E.R.: Call of Pripyat',
+    'S.T.A.L.K.E.R.: Call of Prypiat - Enhanced Edition']],
+  [['Titan Quest', 'Titan Quest: Immortal Throne', 'Titan Quest Gold'], ['Titan Quest Anniversary Edition']],
+  [['Mafia II', 'Mafia II Digital Deluxe Edition'], ['Mafia II (Classic)', 'Mafia II: Definitive Edition']],
+  [['Mafia III'], ['Mafia III: Definitive Edition']],
+  // Deathinitive was free for owners of the Season Pass or the franchise pack, not the base game alone
+  [['Darksiders II Season Pass'], ['Darksiders II Deathinitive Edition']],
+  [['Darksiders Franchise Pack'], ['Darksiders', 'Darksiders Warmastered Edition', 'Darksiders II',
+    'Darksiders II Deathinitive Edition']],
+  [['Company of Heroes'], ['Company of Heroes', 'Company of Heroes - Legacy Edition']],
+  [['Heretic: Shadow of the Serpent Riders', 'Hexen: Beyond Heretic', 'Hexen: Deathkings of the Dark Citadel'],
+    ['Heretic + Hexen']],
 
   // ---------- games that come with another one ----------
   [['SpeedRunners'], ['SpeedRunners', 'No Time To Explain Remastered']],
+  // the original was delisted in May 2026 and appears in Spacer's Choice owners' libraries with no license of its own
+  [["The Outer Worlds: Spacer's Choice Edition"], ["The Outer Worlds: Spacer's Choice Edition", 'The Outer Worlds']],
   // SEGA's Make War Not Love 3 promotion, Feb 2016
   [['Make War Not Love 3 - Prize 1'], ['Hell Yeah!', 'Hell Yeah! Wrath of the Dead Rabbit']],
   [['Shadow Warrior', 'Shadow Warrior: Special Edition'], ['Shadow Warrior', 'Viscera Cleanup Detail: Shadow Warrior']],
@@ -284,8 +306,9 @@ const KNOWN_PACKAGES = [
   // SEGA made its single Genesis games part of SEGA Mega Drive & Genesis Classics in 2018; owning one gives the hub
   [['Streets of Rage', 'Streets of Rage 2', 'Streets of Rage 3', 'Golden Axe', 'Golden Axe II', 'Golden Axe III',
     'Sonic the Hedgehog', 'Sonic the Hedgehog 2', 'Sonic 3D Blast', 'Sonic Spinball', 'Gunstar Heroes', 'Altered Beast',
-    'Ecco the Dolphin', 'Comix Zone', 'Shinobi III: Return of the Ninja Master', 'Vectorman', "Dr. Robotnik's Mean Bean Machine",
-    'Phantasy Star II', 'Phantasy Star III: Generations of Doom', 'Phantasy Star IV'], ['SEGA Mega Drive & Genesis Classics']],
+    'Ecco the Dolphin', 'Comix Zone', 'Shinobi III: Return of the Ninja Master', 'Vectorman',
+    "Dr. Robotnik's Mean Bean Machine", 'Phantasy Star II', 'Phantasy Star III: Generations of Doom', 'Phantasy Star IV'],
+    ['SEGA Mega Drive & Genesis Classics']],
 ];
 
 const KNOWN_BUNDLES = [
@@ -335,5 +358,10 @@ const FREE_TO_PLAY = [
   'TrackMania Nations Forever', 'MechWarrior Online', 'Realm of the Mad God Exalt',
   'Dungeon Defenders II', 'Secret World Legends', 'Battlerite', 'Crusader Kings II', 'Stumble Guys', 'Bloons TD Battles 2',
   'Delta Force', 'Once Human', 'The First Descendant', 'Warhammer 40,000: Dark Nexus Arena', 'Enlisted', 'Overwatch 2',
-  'Splitgate', 'Spectre Divide', 'VRChat', 'Warhammer 40,000: Boltgun - Words of Vengeance',
+  'Splitgate', 'Spectre Divide', 'VRChat', 'Warhammer 40,000: Boltgun - Words of Vengeance', 'The Sims 4',
+  'Guild Wars 2', 'EVE Online', 'Star Wars: The Old Republic', 'The Lord of the Rings Online',
+  'Dungeons & Dragons Online', 'RuneScape', 'Old School RuneScape', 'MapleStory', 'World of Tanks', 'World of Warships',
+  'Crossout', 'Warface', 'PlanetSide 2', 'Trove', 'Albion Online', 'Doki Doki Literature Club', 'Clicker Heroes', 'AdVenture Capitalist',
+  'Fishing Planet', 'Russian Fishing 4', 'Yu-Gi-Oh! Master Duel', 'Eternal Return', 'Super Animal Royale',
+  'Sky: Children of the Light', 'Arena Breakout: Infinite', 'Dauntless',
 ];

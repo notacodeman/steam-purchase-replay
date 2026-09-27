@@ -238,7 +238,17 @@ function licensesByLooseName(games, match, licenseList, claimed) {
       }
       return;
     }
-    if (claimed.has(index) || ADDON_ONLY.test(names[0])) return;
+    if (claimed.has(index)) return;
+    const gameFor = name => match(name, false)
+      || looseNameKeys(normalizeName(name)).map(k => gameByKey.get(k)).find(Boolean);
+    // "POSTAL 2 + Paradise Lost", "The Moon Sliver + The Music Machine": every part that is a game
+    const parts = license.name.split(' + ');
+    const partGames = parts.length > 1 ? parts.map(gameFor).filter(Boolean) : [];
+    if (partGames.length) {
+      partGames.forEach(game => add(game, index));
+      return;
+    }
+    if (ADDON_ONLY.test(names[0])) return;
     const key = looseKeys.flat().find(k => gameByKey.get(k));
     if (key) add(gameByKey.get(key), index);
   });
