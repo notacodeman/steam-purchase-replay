@@ -5,7 +5,12 @@
 let pristinePage = null;
 function capturePristinePage() {
   const page = document.documentElement.cloneNode(true);
-  page.querySelector('#embedded-data')?.remove();
+  const data = page.querySelector('#embedded-data');
+  // the line break added after the data tag goes too, or each re-download adds a blank line
+  if (data && data.nextSibling && data.nextSibling.nodeType === Node.TEXT_NODE && !data.nextSibling.textContent.trim()) {
+    data.nextSibling.remove();
+  }
+  data?.remove();
   pristinePage = '<!doctype html>\n' + page.outerHTML;
 }
 
@@ -190,6 +195,8 @@ async function downloadReport() {
 async function inlineAssets(html) {
   const tags = [...html.matchAll(/<link rel="stylesheet" href="(css\/[^"]+)">|<script src="((?:js|data)\/[^"]+)"><\/script>/g)];
   const contents = await Promise.all(tags.map(async ([, css, js]) => {
+    // the report keeps the known packages list that was in use, which on the live site comes from the admin page
+    if (js === 'data/known-packages.js') return `<script>\n${knownDataScript().replace(/<\/script/gi, '<\\/script')}</script>`;
     const response = await fetch(css || js);
     if (!response.ok) throw new Error(`${css || js}: ${response.status}`);
     const text = await response.text();
@@ -199,4 +206,13 @@ async function inlineAssets(html) {
     html = html.replace(tag, () => contents[i]);
   });
   return html;
+}
+
+// The known packages list in use, written as data/known-packages.js would be.
+function knownDataScript() {
+  return [
+    `const KNOWN_PACKAGES = ${JSON.stringify(KNOWN_PACKAGES)};`,
+    `const KNOWN_BUNDLES = ${JSON.stringify(KNOWN_BUNDLES)};`,
+    `const FREE_TO_PLAY = ${JSON.stringify(FREE_TO_PLAY)};`,
+  ].join('\n') + '\n';
 }

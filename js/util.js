@@ -211,6 +211,32 @@ function cleanLicenseName(name) {
   return s || name;
 }
 
+// Words Steam puts before or after a game's name in license names: "Holiday Sale 2011 Gift: Shadowgrounds",
+// "Nidhogg Store", "Syberia 3 Copy", "Jedi Outcast Comp", "Intruder for Beta Testing".
+const LICENSE_PREFIX = /^(?:holiday sale \d{4} gift|summer sale prize) /;
+const LICENSE_SUFFIX = / (?:comp|humble|humble monthly|digital distribution|all languages|steam|store|gift|gift copy|copy|pre ?order|pre ?order gift|pre ?purchase|free|free for a limited time|free on demand|for beta testing|beta testing|launch|base game|worldwide package)$/;
+const EDITION_WORDS = / (?:collection|bundle|complete pack|complete season|two pack|double pack|\d pack|goty|game of the (?:year|century)|remastered|redux|enhanced|ultimate|deluxe|gold|legendary|definitive|premium|anniversary|director s cut)$/;
+const ROMAN_NUMERALS = { ii: '2', iii: '3', iv: '4', v: '5' };
+
+// Looser forms of a normalized name, most specific first, for when a license and a game differ only by those words
+// or an edition: "control standard edition" → ["control standard edition", "control standard", "control", ...].
+// Only forms of 4 characters or more, so a name never shrinks to nothing.
+function looseNameKeys(normalized) {
+  let name = normalized.replace(LICENSE_PREFIX, '');
+  for (let i = 0; i < 3; i++) name = name.replace(LICENSE_SUFFIX, '');
+  const keys = [name];
+  // "x y z edition" and "x y z edition includes bonus content": drop the edition and up to three words before it
+  const edition = name.match(/^(.+?) edition(?: .*)?$/);
+  if (edition) {
+    const words = edition[1].split(' ');
+    for (let drop = 0; drop <= 3 && drop < words.length; drop++) keys.push(words.slice(0, words.length - drop).join(' '));
+  }
+  let shorter = name;
+  for (let i = 0; i < 3 && EDITION_WORDS.test(shorter); i++) keys.push(shorter = shorter.replace(EDITION_WORDS, ''));
+  const withYearsAndNumerals = keys.flatMap(k => [k, k.replace(/ (?:19|20)\d\d$/, ''), k.replace(/\b(ii|iii|iv|v)\b/g, r => ROMAN_NUMERALS[r])]);
+  return [...new Set(withYearsAndNumerals)].filter(k => k.length >= 4);
+}
+
 const ADDON_WORDS = /(edition|soundtrack|ost|dlc|season pass|pack|bundle|upgrade|expansion|artbook)/;
 
 // Returns match(name, allowAddon) → the game from `games` a product name refers to, or null.

@@ -176,3 +176,28 @@ function keySpend(keyPurchases) {
   const orders = ordersOf(keyPurchases).filter(o => !o.notSteam && !o.giftReceived);
   return { total: sum(orders, o => o.total || 0), orders: orders.length };
 }
+
+// Known bundles (KNOWN_BUNDLES in data/known-packages.js) that unlinked key activations probably came from, most
+// keys first: [{ bundle, keys }]. A key counts for a bundle when it's one of its games and was activated from the day
+// before the bundle went on sale. Each key goes to one bundle only, and a bundle needs two keys to be suggested.
+function bundleSuggestions(unlinked) {
+  const forms = name => {
+    const normalized = normalizeName(cleanLicenseName(name));
+    return [normalized, stripEditionSuffix(normalized), looseNameKeys(normalized)[0]].filter(Boolean);
+  };
+  const candidates = KNOWN_BUNDLES.map(bundle => {
+    const games = new Set(bundle.games.flatMap(forms));
+    const from = addDays(bundle.date, -1);
+    const keys = unlinked.filter(l => l.date >= from && [l.name, l.steamName].flatMap(forms).some(f => games.has(f)));
+    return { bundle, keys };
+  }).sort((a, b) => b.keys.length - a.keys.length);
+  const taken = new Set();
+  const suggestions = [];
+  for (const { bundle, keys } of candidates) {
+    const free = keys.filter(l => !taken.has(l));
+    if (free.length < 2) continue;
+    free.forEach(l => taken.add(l));
+    suggestions.push({ bundle, keys: free });
+  }
+  return suggestions;
+}

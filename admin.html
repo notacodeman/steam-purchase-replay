@@ -1,0 +1,312 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex">
+<title>Admin · Steam Spending Replay</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Albert+Sans:wght@400;600;700&display=swap">
+<link rel="stylesheet" href="css/style.css">
+<style>
+  /* Admin-only layout. Colours, buttons and dialogs come from css/style.css. */
+  .adm { max-width: 1100px; margin: 0 auto; padding: 20px 16px 60px; }
+  .adm h1 { color: var(--ink); font-size: 24px; margin: 0 0 4px; }
+  .adm .sub { color: var(--muted); margin: 0 0 18px; }
+  .tabs { display: flex; gap: 4px; flex-wrap: wrap; border-bottom: 1px solid var(--rule); margin-bottom: 14px; }
+  .tabs button { background: none; border: 0; border-bottom: 2px solid transparent; color: var(--muted); font: inherit;
+    font-weight: 600; padding: 8px 12px; cursor: pointer; }
+  .tabs button[aria-selected="true"] { color: var(--ink); border-bottom-color: var(--blue); }
+  .bar { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; margin-bottom: 12px; }
+  .bar input[type="search"] { flex: 1 1 220px; min-width: 0; }
+  .bar .sp { flex: 1; }
+  .adm input, .adm select, .adm textarea { background: var(--bg2); color: var(--text); border: 1px solid var(--hi);
+    border-radius: 3px; font: inherit; padding: 7px 9px; }
+  .adm textarea { width: 100%; min-height: 150px; resize: vertical; font-size: 14px; }
+  .count { color: var(--muted); font-size: 13px; margin-bottom: 8px; }
+  .rows { display: grid; gap: 6px; }
+  .row { background: var(--panel); border: 1px solid var(--rule); border-radius: 4px; padding: 10px 12px;
+    display: grid; grid-template-columns: 1fr auto; gap: 4px 12px; align-items: start; }
+  .row b { color: var(--ink); overflow-wrap: anywhere; }
+  .row .meta { color: var(--muted); font-size: 13px; overflow-wrap: anywhere; }
+  .row .acts { grid-row: 1 / span 2; grid-column: 2; display: flex; gap: 10px; white-space: nowrap; }
+  .empty { color: var(--muted); padding: 24px 0; }
+  .fdlg .fg { display: grid; gap: 10px; grid-template-columns: 1fr 1fr; }
+  .fdlg .fg .w { grid-column: 1 / -1; }
+  .fdlg label { display: grid; gap: 4px; font-size: 13px; color: var(--muted); }
+  .fdlg .hint { font-size: 12px; color: var(--dim); }
+  .fdlg .foot { display: flex; gap: 8px; justify-content: flex-end; margin-top: 14px; }
+  #toast { position: fixed; left: 50%; bottom: 20px; transform: translateX(-50%); max-width: calc(100% - 32px); z-index: 10; }
+  @media (max-width: 600px) { .fdlg .fg { grid-template-columns: 1fr; } .row { grid-template-columns: 1fr; }
+    .row .acts { grid-row: auto; grid-column: 1; } }
+</style>
+</head>
+<body>
+<main class="adm">
+  <h1>Admin</h1>
+  <p class="sub">What the <a href="/">Spending Replay</a> matches against: packs and renamed games (licenses → games),
+    bundles (unlinked keys → a suggested purchase) and free-to-play games. Changes go live within a minute.</p>
+
+  <div class="tabs" role="tablist">
+    <button role="tab" data-tab="packages" aria-selected="true">Packs</button>
+    <button role="tab" data-tab="bundles" aria-selected="false">Bundles</button>
+    <button role="tab" data-tab="free" aria-selected="false">Free to play</button>
+    <button role="tab" data-tab="history" aria-selected="false">History</button>
+  </div>
+
+  <div class="bar">
+    <input type="search" id="q" placeholder="Search names and games" aria-label="Search">
+    <button class="tbtn" id="add">+ Add</button>
+    <span class="sp"></span>
+    <button class="linkbtn" id="seed" type="button">Load the built-in list…</button>
+    <button class="linkbtn" id="export" type="button">Download as known-packages.js</button>
+  </div>
+  <div id="msg"></div>
+  <div class="count" id="count"></div>
+  <div class="rows" id="rows"></div>
+</main>
+
+<dialog id="dlg" class="fdlg" aria-labelledby="dlgH">
+  <form id="form" novalidate>
+    <div class="fh"><h2 id="dlgH">Edit</h2><button type="button" class="x" aria-label="Close" id="dlgX">×</button></div>
+    <div class="fg" id="fields"></div>
+    <div id="formErr" class="msg err" hidden></div>
+    <div class="foot">
+      <button type="button" class="linkbtn" id="del">Delete</button>
+      <span class="sp" style="flex:1"></span>
+      <button type="button" class="tbtn" id="cancel">Cancel</button>
+      <button type="submit" class="tbtn">Save</button>
+    </div>
+  </form>
+</dialog>
+<div id="toast" class="msg ok" hidden></div>
+
+<script src="data/known-packages.js"></script>
+<script>
+// ---------- helpers ----------
+const $ = s => document.querySelector(s);
+const esc = s => String(s ?? '').replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+const lines = s => s.split('\n').map(l => l.trim()).filter(Boolean);
+const money = v => (v == null ? 'price unknown' : '$' + Number(v).toFixed(2));
+
+async function api(path, method = 'GET', body) {
+  const response = await fetch('/api/admin/' + path, {
+    method, headers: body ? { 'Content-Type': 'application/json' } : {}, body: body ? JSON.stringify(body) : undefined,
+  });
+  const data = await response.json().catch(() => ({ ok: false, error: `The server answered ${response.status}.` }));
+  if (!data.ok) throw new Error(data.error || 'Something went wrong.');
+  return data;
+}
+
+function toast(text) {
+  const el = $('#toast');
+  el.textContent = text;
+  el.hidden = false;
+  clearTimeout(toast.t);
+  toast.t = setTimeout(() => el.hidden = true, 3500);
+}
+const showError = e => $('#msg').innerHTML = `<div class="msg err">${esc(e.message || e)}</div>`;
+
+// ---------- the three lists ----------
+// Per tab: how a row is shown, searched and edited. Field kinds: text, list (one per line), date, number, kind.
+const LISTS = {
+  packages: {
+    noun: 'pack',
+    title: r => r.licenses.join(' · '),
+    meta: r => `${r.games.length} games: ${r.games.join(', ')}${r.note ? ' — ' + r.note : ''}`,
+    fields: [
+      ['licenses', 'License names', 'list', 'As they appear on the Steam licenses page, one per line. Region tags like (RoW) and "Retail" are ignored.'],
+      ['games', 'Games it gives', 'list', 'As they appear on the games page, one per line.'],
+      ['note', 'Note', 'text', 'Where the contents came from, for next time.'],
+    ],
+  },
+  bundles: {
+    noun: 'bundle',
+    title: r => r.name,
+    meta: r => `${r.date} · ${r.store || 'no store'} · ${r.kind === 'sub' ? 'subscription month' : 'bundle'} · ${money(r.price)} · ${r.games.length} games: ${r.games.join(', ')}${r.note ? ' — ' + r.note : ''}`,
+    fields: [
+      ['name', 'Name', 'text', 'Shown to visitors and used as the purchase name, e.g. "April 2023 Humble Choice".'],
+      ['store', 'Store', 'text', ''],
+      ['date', 'On sale from', 'date', 'Only keys activated from the day before this count.'],
+      ['kind', 'Kind', 'kind', ''],
+      ['price', 'Price (USD)', 'number', 'Leave empty if unknown.'],
+      ['games', 'Games', 'list', 'Names as Steam shows them, one per line.'],
+      ['note', 'Note', 'text', ''],
+    ],
+  },
+  free: {
+    noun: 'free game',
+    title: r => r.name,
+    meta: () => '',
+    fields: [['name', 'Game', 'text', 'As it appears on the games page.']],
+  },
+};
+const HISTORY_TABLES = { packages: 'packages', bundles: 'bundles', free_games: 'free' };
+
+let tab = 'packages';
+let rows = [];
+let editing = null;
+
+async function load() {
+  $('#msg').innerHTML = '';
+  $('#rows').innerHTML = '<p class="empty">Loading…</p>';
+  try {
+    rows = (await api(tab)).rows;
+  } catch (e) {
+    rows = [];
+    showError(e);
+  }
+  draw();
+}
+
+function draw() {
+  const q = $('#q').value.trim().toLowerCase();
+  const history = tab === 'history';
+  $('#add').hidden = history;
+  const shown = rows.filter(r => !q || JSON.stringify(r).toLowerCase().includes(q));
+  $('#count').textContent = history ? 'Last 100 changes, newest first.' : `${shown.length} of ${rows.length}`;
+  if (!rows.length && !history) {
+    $('#rows').innerHTML = '<p class="empty">Nothing here yet. Add one, or use "Load the built-in list" to start from data/known-packages.js.</p>';
+    return;
+  }
+  $('#rows').innerHTML = shown.map((r, i) => history ? historyRow(r) : `<div class="row">
+      <b>${esc(LISTS[tab].title(r))}</b>
+      <div class="acts"><button class="linkbtn" data-edit="${rows.indexOf(r)}">Edit</button></div>
+      <div class="meta">${esc(LISTS[tab].meta(r))}</div>
+    </div>`).join('') || '<p class="empty">No matches.</p>';
+  document.querySelectorAll('[data-edit]').forEach(b => b.onclick = () => openEditor(rows[+b.dataset.edit]));
+  document.querySelectorAll('[data-undo]').forEach(b => b.onclick = () => undo(rows.find(r => r.id === +b.dataset.undo)));
+}
+
+function historyRow(h) {
+  const undoable = HISTORY_TABLES[h.tbl] && h.action !== 'import';
+  const when = new Date(h.at).toLocaleString();
+  return `<div class="row">
+      <b>${esc(h.action)} · ${esc(h.label || '')}</b>
+      <div class="acts">${undoable ? `<button class="linkbtn" data-undo="${h.id}">Undo</button>` : ''}</div>
+      <div class="meta">${esc(h.tbl)} · ${esc(when)}</div>
+    </div>`;
+}
+
+// Undo puts the row back as it was: an add is deleted, an edit or delete is written back with its old id.
+async function undo(h) {
+  const path = HISTORY_TABLES[h.tbl];
+  try {
+    if (h.action === 'add') {
+      await api(path, 'DELETE', { id: h.row_id });
+    } else {
+      const before = JSON.parse(h.before);
+      for (const key of ['licenses', 'games']) if (typeof before[key] === 'string') before[key] = JSON.parse(before[key]);
+      await api(path, 'POST', before);
+    }
+    toast('Undone.');
+    load();
+  } catch (e) {
+    showError(e);
+  }
+}
+
+// ---------- editor ----------
+function openEditor(row) {
+  editing = row || null;
+  const list = LISTS[tab];
+  $('#dlgH').textContent = (row ? 'Edit ' : 'Add a ') + list.noun;
+  $('#del').hidden = !row;
+  $('#formErr').hidden = true;
+  $('#fields').innerHTML = list.fields.map(([name, label, kind, hint]) => {
+    const value = row ? row[name] : kind === 'kind' ? 'sub' : '';
+    const input = kind === 'list' ? `<textarea name="${name}">${esc((value || []).join('\n'))}</textarea>`
+      : kind === 'kind' ? `<select name="${name}"><option value="sub"${value === 'sub' ? ' selected' : ''}>Subscription month</option><option value="bundle"${value === 'bundle' ? ' selected' : ''}>Bundle</option></select>`
+      : `<input name="${name}" type="${kind === 'date' ? 'date' : kind === 'number' ? 'number' : 'text'}"${kind === 'number' ? ' step="0.01" min="0"' : ''} value="${esc(value ?? '')}">`;
+    return `<label class="${kind === 'list' || kind === 'text' ? 'w' : ''}">${esc(label)}${input}${hint ? `<span class="hint">${esc(hint)}</span>` : ''}</label>`;
+  }).join('');
+  $('#dlg').showModal();
+}
+
+async function save(event) {
+  event.preventDefault();
+  const form = $('#form');
+  const body = editing ? { id: editing.id } : {};
+  for (const [name, , kind] of LISTS[tab].fields) {
+    const value = form.elements[name].value;
+    body[name] = kind === 'list' ? lines(value) : kind === 'number' ? (value === '' ? null : +value) : value.trim();
+  }
+  try {
+    await api(tab, 'POST', body);
+    $('#dlg').close();
+    toast('Saved.');
+    load();
+  } catch (e) {
+    $('#formErr').textContent = e.message;
+    $('#formErr').hidden = false;
+  }
+}
+
+async function remove() {
+  if (!editing || !confirm(`Delete this ${LISTS[tab].noun}? It can be undone from History.`)) return;
+  try {
+    await api(tab, 'DELETE', { id: editing.id });
+    $('#dlg').close();
+    toast('Deleted.');
+    load();
+  } catch (e) {
+    $('#formErr').textContent = e.message;
+    $('#formErr').hidden = false;
+  }
+}
+
+// ---------- built-in list ----------
+// Replaces everything with data/known-packages.js as deployed with the site.
+async function seed() {
+  const counts = `${KNOWN_PACKAGES.length} packs, ${KNOWN_BUNDLES.length} bundles and ${FREE_TO_PLAY.length} free games`;
+  if (!confirm(`Replace all three lists with the built-in one (${counts})? What's there now is kept in History.`)) return;
+  try {
+    await api('import', 'POST', { packages: KNOWN_PACKAGES, bundles: KNOWN_BUNDLES, free: FREE_TO_PLAY });
+    toast('Loaded the built-in list.');
+    load();
+  } catch (e) {
+    showError(e);
+  }
+}
+
+// Writes the current lists as data/known-packages.js, keeping the file's explanatory comment, so the built-in copy
+// in the repo can be brought up to date with a commit.
+async function exportFile() {
+  try {
+    const [packages, bundles, free, file] = await Promise.all([
+      api('packages'), api('bundles'), api('free'), fetch('data/known-packages.js').then(r => r.text()),
+    ]);
+    const header = file.slice(0, file.indexOf('const KNOWN_PACKAGES'));
+    const q = JSON.stringify;
+    const out = header
+      + 'const KNOWN_PACKAGES = [\n' + packages.rows.map(p => `  [${q(p.licenses)}, ${q(p.games)}],`).join('\n') + '\n];\n\n'
+      + 'const KNOWN_BUNDLES = [\n' + bundles.rows.map(b => `  ${q({ name: b.name, store: b.store, kind: b.kind, date: b.date, price: b.price, games: b.games })},`).join('\n') + '\n];\n\n'
+      + 'const FREE_TO_PLAY = [\n' + free.rows.map(f => `  ${q(f.name)},`).join('\n') + '\n];\n';
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(new Blob([out], { type: 'text/javascript' }));
+    a.download = 'known-packages.js';
+    a.click();
+    setTimeout(() => URL.revokeObjectURL(a.href), 3000);
+  } catch (e) {
+    showError(e);
+  }
+}
+
+// ---------- wiring ----------
+document.querySelectorAll('[data-tab]').forEach(button => button.onclick = () => {
+  tab = button.dataset.tab;
+  document.querySelectorAll('[data-tab]').forEach(b => b.setAttribute('aria-selected', String(b === button)));
+  $('#q').value = '';
+  load();
+});
+$('#q').oninput = draw;
+$('#add').onclick = () => openEditor(null);
+$('#form').onsubmit = save;
+$('#del').onclick = remove;
+$('#cancel').onclick = $('#dlgX').onclick = () => $('#dlg').close();
+$('#seed').onclick = seed;
+$('#export').onclick = exportFile;
+load();
+</script>
+</body>
+</html>

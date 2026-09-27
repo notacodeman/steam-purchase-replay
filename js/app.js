@@ -418,10 +418,30 @@ function reopenSavedReport() {
   if (saved && saved.h) runSavedReport(saved);
 }
 
+// The live site keeps its known packs, bundles and free games in the admin page's database; this replaces the
+// built-in copy from data/known-packages.js with it. A downloaded report keeps the copy it was saved with. If the
+// list can't be fetched in time, the built-in copy is used.
+async function loadKnownData() {
+  if (isDownloadedReport() || !/^https?:$/.test(location.protocol)) return;
+  try {
+    const response = await fetch('/api/known-data', { signal: AbortSignal.timeout(3000) });
+    if (!response.ok) return;
+    const data = await response.json();
+    if (!data.ok || !data.packages.length) return;
+    KNOWN_PACKAGES.splice(0, KNOWN_PACKAGES.length, ...data.packages.map(p => [p.licenses, p.games]));
+    KNOWN_BUNDLES.splice(0, KNOWN_BUNDLES.length, ...data.bundles);
+    FREE_TO_PLAY.splice(0, FREE_TO_PLAY.length, ...data.free);
+  } catch (e) {
+    console.warn('Using the built-in known packages list:', e);
+  }
+}
+
 capturePristinePage();
 initUploadScreen();
 initReportTools();
 initForms();
 initRail();
-if (isDownloadedReport()) openDownloadedReport();
-else reopenSavedReport();
+loadKnownData().then(() => {
+  if (isDownloadedReport()) openDownloadedReport();
+  else reopenSavedReport();
+});

@@ -414,32 +414,46 @@ function purchaseNote({ orders, steamKeys, otherItems, total, fees, keys, gifted
   return parts;
 }
 
-// Key activations not linked to a purchase yet, grouped by day: several keys on one day usually came from one bundle.
+// Key activations not linked to a purchase yet: first the known bundles they look like they came from, then the
+// rest grouped by day, since several keys on one day usually came from one bundle.
 function renderSuggestions(licenses) {
   const box = $('#kpSuggest');
   const unlinked = unlinkedKeys(licenses);
   box.hidden = !unlinked.length;
   if (!unlinked.length) return;
+  const bundles = bundleSuggestions(unlinked);
+  const inBundles = new Set(bundles.flatMap(s => s.keys));
   const byDay = new Map();
-  for (const license of unlinked) {
+  for (const license of unlinked.filter(l => !inBundles.has(l))) {
     if (!byDay.has(license.date)) byDay.set(license.date, []);
     byDay.get(license.date).push(license);
   }
   const batches = [...byDay.entries()].filter(([, day]) => day.length >= 3).sort((a, b) => b[1].length - a[1].length).slice(0, 6);
   const heading = `<h4>${pluralize(unlinked.length, 'key activation')} not linked to a purchase yet</h4>`;
-  if (!batches.length) {
+  if (!bundles.length && !batches.length) {
     box.innerHTML = heading + '<p class="kpct">They were activated one or two at a time. Use Add a purchase or import a spreadsheet to link them.</p>';
     return;
   }
-  const cards = batches.map(([date, day]) => {
-    const names = day.slice(0, 4).map(l => l.name).join(', ') + (day.length > 4 ? `, +${day.length - 4} more` : '');
-    return `<div class="sg">
-      <div><b>${formatDate(date)}</b> · ${pluralize(day.length, 'key')}<span class="s">${escapeHtml(names)}</span></div>
+  const names = keys => escapeHtml(keys.slice(0, 4).map(l => l.name).join(', ') + (keys.length > 4 ? `, +${keys.length - 4} more` : ''));
+  const bundleCards = bundles.map(({ bundle, keys }, i) => `<div class="sg">
+      <div><b>${escapeHtml(bundle.name)}</b> · ${pluralize(keys.length, 'key')}<span class="s">${names(keys)}</span></div>
+      <button class="tbtn sgb" data-b="${i}">Add this purchase</button>
+    </div>`);
+  const dayCards = batches.map(([date, day]) => `<div class="sg">
+      <div><b>${formatDate(date)}</b> · ${pluralize(day.length, 'key')}<span class="s">${names(day)}</span></div>
       <button class="tbtn sgb" data-d="${date}">Add this purchase</button>
-    </div>`;
+    </div>`);
+  box.innerHTML = heading
+    + (bundleCards.length ? '<p class="kpct">These keys are games from bundles we know. Add the purchase and they\'ll be linked; check the date and price.</p>' + `<div class="sgl">${bundleCards.join('')}</div>` : '')
+    + (dayCards.length ? '<p class="kpct">Keys activated together usually came from one bundle. Add the purchase and they\'ll be linked.</p>' + `<div class="sgl">${dayCards.join('')}</div>` : '');
+  box.querySelectorAll('.sgb[data-b]').forEach(button => button.onclick = () => {
+    const { bundle, keys } = bundles[+button.dataset.b];
+    openPurchaseForm({
+      type: bundle.kind === 'sub' ? 'sub' : 'purchase', date: keys.reduce((a, l) => (l.date < a ? l.date : a), keys[0].date),
+      name: bundle.name, store: bundle.store || '', total: bundle.price ?? undefined, keys: keys.map(l => [l.date, l.steamName]),
+    });
   });
-  box.innerHTML = heading + '<p class="kpct">Keys activated together usually came from one bundle. Add the purchase and they\'ll be linked.</p>' + `<div class="sgl">${cards.join('')}</div>`;
-  box.querySelectorAll('.sgb').forEach(button => button.onclick = () => openPurchaseForm({ date: button.dataset.d, type: 'purchase' }));
+  box.querySelectorAll('.sgb[data-d]').forEach(button => button.onclick = () => openPurchaseForm({ date: button.dataset.d, type: 'purchase' }));
 }
 
 // Product keys on the licenses page that no purchase is linked to.

@@ -25,6 +25,7 @@ global scope, so a script can use anything defined in the ones before it.
 | `index.html` | The page markup |
 | `css/style.css` | All styles |
 | `data/steam-sales.js` | Dates of Steam's seasonal sales (see below) |
+| `data/known-packages.js` | Built-in copy of the known packs, bundles and free-to-play games (see Admin below) |
 | `js/util.js` | Shared helpers: DOM, dates, money, name matching, colours |
 | `js/parse.js` | Reading the saved Steam pages into rows |
 | `js/analyze-history.js` | Purchase history → totals, per-year spending, savings, gifts, hardware, sale timing |
@@ -39,10 +40,39 @@ global scope, so a script can use anything defined in the ones before it.
 | `js/forms.js` | Add/edit purchase, edit price, spreadsheet import |
 | `js/storage.js` | Saving to and loading from browser storage, one entry per report |
 | `js/export.js` | Share card image and the downloadable report |
+| `admin.html` | Admin page for the known packs, bundles and free-to-play games |
+| `functions/` | Cloudflare Pages Functions: `/api/known-data` (public) and `/api/admin/*`, plus the D1 schema |
 | `js/app.js` | Upload screen and saved-report list, building a report, section navigation, startup |
 
 The row shapes produced by `js/parse.js` are also what gets saved in browsers and inside downloaded reports, so
 changing their field names breaks reports people already have.
+
+## Admin
+
+`/admin.html` edits what the site matches against, stored in a Cloudflare D1 database:
+
+- **Packs**: license names and the games they give (The Orange Box → Half-Life 2, Portal…), renamed games and
+  remasters. Used to work out where each game on the games page came from.
+- **Bundles**: Humble Choice months and other bundles with their games. Unlinked key activations that are games from
+  one are suggested as that purchase, with the name, store and price filled in.
+- **Free to play**: games counted as free when they have no license of their own.
+- **History**: every change, with Undo.
+
+The site loads the lists from `/api/known-data` when it starts and falls back to `data/known-packages.js` if that
+fails. A downloaded report keeps the lists it was saved with. "Download as known-packages.js" on the admin page writes
+the current lists in that file's format, to commit as the new built-in copy.
+
+### Setting it up
+
+1. Create the database: Cloudflare dashboard → Storage & Databases → D1 → Create, named `steam-replay`.
+2. Create the tables: open the database's Console, paste `functions/schema.sql` and run it.
+3. Bind it: Workers & Pages → the steam-purchase-replay project → Settings → Bindings → Add → D1 database,
+   variable name `DB`, database `steam-replay`. Redeploy so the binding takes effect.
+4. Lock it: Zero Trust → Access → Applications → Add → Self-hosted, domain `steam.codeman.club` with paths
+   `admin.html` and `api/admin/*`, and a policy allowing only your email. `/api/admin/*` also refuses any request that
+   didn't come through Access.
+5. Open `https://steam.codeman.club/admin.html` and click "Load the built-in list".
+
 
 ## Updating the sale dates
 
@@ -56,7 +86,8 @@ timing figures, and the page says so.
 Open `index.html` directly, or serve the folder (for example `python -m http.server`). Download report needs the page
 served over HTTP, because it reads the CSS and script files to inline them.
 
-External requests: Chart.js (jsDelivr), the Albert Sans font (Google Fonts), and SheetJS (cdnjs) only when an Excel
-file is imported.
+External requests: Chart.js (jsDelivr), the Albert Sans font (Google Fonts), SheetJS (cdnjs) only when an Excel
+file is imported, and `/api/known-data` on the live site. The admin page and its API need `wrangler pages dev` with a
+D1 binding locally; set `ADMIN_DEV=1` in `.dev.vars` to skip the Access check there.
 
 Not affiliated with Valve.

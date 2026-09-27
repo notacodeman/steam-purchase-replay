@@ -148,6 +148,8 @@ function gameCosts(games, match, historyRows, gamesPage, keyPurchases, priceEdit
 // For each source, how many of its games were never played. Only games tied to exactly one source count; the rest
 // are listed in `unmatched` so they can be linked by hand, and games linked by hand in `handMatched`. gameLinks maps an app id to the license ("date|name") the
 // visitor picked for it, which overrides matching by name.
+// A game with no license of its own name is tied to the earliest license that gives it without saying so (see
+// licensesByLooseName), and failing that, if it's free to play, to the free source.
 function neverPlayedBySource(games, match, licenseList, gameLinks) {
   if (!licenseList || !licenseList.length) return { bySrc: null, srcMatched: 0, unmatched: [], handMatched: [] };
   const matchedLicenses = new Map(); // game id → indexes of the licenses whose name matches it
@@ -157,6 +159,9 @@ function neverPlayedBySource(games, match, licenseList, gameLinks) {
     if (!matchedLicenses.has(game.id)) matchedLicenses.set(game.id, []);
     matchedLicenses.get(game.id).push(index);
   });
+  const claimed = new Set([...matchedLicenses.values()].flat());
+  const looseLicenses = licensesByLooseName(games, match, licenseList, claimed);
+  const freeToPlay = new Set(FREE_TO_PLAY.map(name => match(name, false)).filter(Boolean).map(g => g.id));
   const sourceOf = license => license.source === 'beta' ? 'key' : license.source;
   const bySrc = { store: [0, 0], key: [0, 0], free: [0, 0], gift: [0, 0], other: [0, 0] };
   const unmatched = [];
@@ -166,8 +171,14 @@ function neverPlayedBySource(games, match, licenseList, gameLinks) {
     const link = gameLinks && gameLinks[game.id];
     const linked = link && licenseList.find(l => l.date + '|' + l.steamName === link);
     const licenses = (matchedLicenses.get(game.id) || []).map(i => licenseList[i]);
-    const sources = new Set(linked ? [sourceOf(linked)] : licenses.map(sourceOf));
+    let sources = new Set(linked ? [sourceOf(linked)] : licenses.map(sourceOf));
     if (linked) handMatched.push({ id: game.id, name: game.name, licenses: [linked.name], linked: true });
+    if (!sources.size) {
+      const loose = (looseLicenses.get(game.id) || []).map(i => licenseList[i]);
+      const earliest = loose.reduce((a, b) => (!a || b.date < a.date ? b : a), null);
+      if (earliest) sources = new Set([sourceOf(earliest)]);
+      else if (freeToPlay.has(game.id)) sources = new Set(['free']);
+    }
     if (sources.size !== 1) {
       unmatched.push({ id: game.id, name: game.name, min: game.min, licenses: licenses.map(l => l.name) });
       continue;
@@ -178,4 +189,53 @@ function neverPlayedBySource(games, match, licenseList, gameLinks) {
     if (!game.min) counts[1]++;
   }
   return { bySrc, srcMatched, unmatched, handMatched };
+}
+
+// Game id → indexes of licenses that give the game without being named after it: the packs and renamed games in
+// data/known-packages.js, and licenses named after the game plus tags or edition words ("Nidhogg Store",
+// "Control Standard Edition"). Edition matching only uses licenses not already matched to a game by name, and only
+// forms of a name that belong to one game.
+// Licenses for add-ons, which never stand for a game even when their name starts with one.
+const ADDON_ONLY = /\b(?:dlc|season pass|expansion|costume|skin|upgrade)\b/;
+
+function licensesByLooseName(games, match, licenseList, claimed) {
+  const found = new Map();
+  const add = (game, index) => {
+    if (!found.has(game.id)) found.set(game.id, []);
+    found.get(game.id).push(index);
+  };
+
+  const packages = new Map(); // loose form of a package name → its games
+  for (const [names, gameNames] of KNOWN_PACKAGES) {
+    for (const name of names) {
+      const normalized = normalizeName(cleanLicenseName(name));
+      packages.set(looseNameKeys(normalized)[0] || normalized, gameNames);
+    }
+  }
+
+  const gameByKey = new Map(); // loose form of a game's name → the game, or null when several games share it
+  for (const game of games) {
+    for (const key of looseNameKeys(normalizeName(game.name))) {
+      gameByKey.set(key, gameByKey.has(key) && gameByKey.get(key) !== game ? null : game);
+    }
+  }
+
+  licenseList.forEach((license, index) => {
+    const names = [license.name, license.steamName].map(normalizeName);
+    const looseKeys = names.map(looseNameKeys);
+    // a package is looked up by its name with only tags removed, so "Little Nightmares II Deluxe Edition" isn't
+    // taken for "Little Nightmares"
+    const packageGames = [...names, ...looseKeys.map(keys => keys[0])].map(key => packages.get(key)).find(Boolean);
+    if (packageGames) {
+      for (const name of packageGames) {
+        const game = match(name, false);
+        if (game) add(game, index);
+      }
+      return;
+    }
+    if (claimed.has(index) || ADDON_ONLY.test(names[0])) return;
+    const key = looseKeys.flat().find(k => gameByKey.get(k));
+    if (key) add(gameByKey.get(key), index);
+  });
+  return found;
 }
