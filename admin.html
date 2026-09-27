@@ -93,7 +93,8 @@ async function api(path, method = 'GET', body) {
   const response = await fetch('/api/admin/' + path, {
     method, headers: body ? { 'Content-Type': 'application/json' } : {}, body: body ? JSON.stringify(body) : undefined,
   });
-  const data = await response.json().catch(() => ({ ok: false, error: `The server answered ${response.status}.` }));
+  // behind Cloudflare Access, an expired session gets the sign-in page instead of JSON
+  const data = await response.json().catch(() => ({ ok: false, error: `Not a JSON answer (${response.status}). Your Access session may have expired — refresh to sign in.` }));
   if (!data.ok) throw new Error(data.error || 'Something went wrong.');
   return data;
 }

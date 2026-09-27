@@ -1,4 +1,4 @@
-// POST /api/admin/import { packages: [[licenses, games]], bundles: [...], free: [names] }
+// POST /api/admin/import { packages: [[licenses, games]], bundles: [...], free: [names] }. Protected by Cloudflare Access.
 // Replaces all three lists at once, used to load the built-in data/known-packages.js into an empty database or to
 // start over from it. The old lists are kept in `history` as one entry per list.
 

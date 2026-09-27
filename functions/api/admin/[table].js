@@ -1,4 +1,4 @@
-// /api/admin/packages, /api/admin/bundles, /api/admin/free: the admin page's lists.
+// /api/admin/packages, /api/admin/bundles, /api/admin/free: the admin page's lists. Protected by Cloudflare Access.
 //   GET                 -> every row
 //   POST {row}          -> add a row, or replace the row with that id
 //   DELETE {id}         -> remove a row
