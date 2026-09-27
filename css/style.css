@@ -68,6 +68,33 @@ a {
   flex-wrap: wrap;
 }
 
+/* a thin strip above the nav linking back to the main site */
+.topbar {
+  background: #0e1116;
+  font-size: .82rem;
+}
+
+.topbar .in {
+  max-width: 1120px;
+  margin: 0 auto;
+  padding: 5px clamp(16px,4vw,32px);
+}
+
+.topbar a {
+  color: var(--muted);
+  text-decoration: none;
+}
+
+.topbar a:hover {
+  color: var(--blue);
+}
+
+.topbar a:focus-visible {
+  outline: 2px solid #fff;
+  outline-offset: 2px;
+}
+
+/* the logo reloads the page */
 .logo {
   display: flex;
   align-items: center;
@@ -76,6 +103,16 @@ a {
   font-weight: 800;
   letter-spacing: .06em;
   font-size: 1.05rem;
+  text-decoration: none;
+}
+
+.logo:hover {
+  color: #fff;
+}
+
+.logo:focus-visible {
+  outline: 2px solid #fff;
+  outline-offset: 2px;
 }
 
 .logo svg {
