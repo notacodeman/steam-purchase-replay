@@ -68,13 +68,16 @@ a {
   flex-wrap: wrap;
 }
 
-/* back to the main site, at the start of the nav */
+/* back to the main site, at the right end of the nav (next to "Use different files" when that's shown) */
 .nav .home {
+  margin-left: auto;
   color: var(--muted);
-  font-size: .88rem;
+  font-size: .92rem;
   text-decoration: none;
-  padding-right: 22px;
-  border-right: 1px solid rgba(255,255,255,.12);
+}
+
+.nav .reset:not([hidden]) + .home {
+  margin-left: 0;
 }
 
 .nav .home:hover {
@@ -84,6 +87,23 @@ a {
 .nav .home:focus-visible {
   outline: 2px solid #fff;
   outline-offset: 2px;
+}
+
+/* on phones the nav wraps, so the link moves up next to the logo */
+@media (max-width: 600px) {
+  .nav .home,
+  .nav .reset:not([hidden]) + .home {
+    order: 1;
+    margin-left: auto;
+  }
+
+  .nav .crumbs {
+    order: 2;
+  }
+
+  .nav .reset {
+    order: 3;
+  }
 }
 
 /* the logo reloads the page */
@@ -110,28 +130,6 @@ a {
 .logo svg {
   width: 28px;
   height: 28px;
-}
-
-/* on phones, tighter spacing keeps the link and the logo on one line */
-@media (max-width: 480px) {
-  .nav .in {
-    gap: 12px 14px;
-  }
-
-  .nav .home {
-    padding-right: 14px;
-  }
-
-  .logo {
-    gap: 8px;
-    font-size: .95rem;
-    letter-spacing: .04em;
-  }
-
-  .logo svg {
-    width: 24px;
-    height: 24px;
-  }
 }
 
 .nav .crumbs {
