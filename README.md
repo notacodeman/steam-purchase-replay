@@ -41,7 +41,7 @@ global scope, so a script can use anything defined in the ones before it.
 | `js/storage.js` | Saving to and loading from browser storage, one entry per report |
 | `js/export.js` | Share card image and the downloadable report |
 | `admin.html` | Admin page for the known packs, bundles and free-to-play games |
-| `functions/` | Cloudflare Pages Functions: `/api/known-data` (public), `/api/admin/*`, the admin sign-in check (`_middleware.js`) and the D1 schema |
+| `functions/` | Cloudflare Pages Functions: `/api/known-data` (public), `/api/admin/*` and the D1 schema |
 | `js/app.js` | Upload screen and saved-report list, building a report, section navigation, startup |
 
 The row shapes produced by `js/parse.js` are also what gets saved in browsers and inside downloaded reports, so
@@ -68,19 +68,15 @@ the current lists in that file's format, to commit as the new built-in copy.
 2. Create the tables: open the database's Console, paste `functions/schema.sql` and run it.
 3. Bind it: Workers & Pages → the steam-purchase-replay project → Settings → Bindings → Add → D1 database,
    variable name `DB`, database `steam-replay`. Redeploy so the binding takes effect.
-4. Lock it with Cloudflare Access: Zero Trust → Access → Applications → Add → Self-hosted, domain
-   `steam.codeman.club` with paths `admin`, `admin.html` and `api/admin/*`, and an Allow policy with an Emails
-   selector listing who may use the admin. Copy the application's Application Audience (AUD) tag.
-5. Tell the site who's allowed: the Pages project → Settings → Variables and secrets, add
-   - `ACCESS_TEAM_DOMAIN`: your team domain, e.g. `codeman.cloudflareaccess.com` (shown under Zero Trust → Settings)
-   - `ACCESS_AUD`: the AUD tag from step 4
-   - `ADMIN_EMAILS`: the same emails as the Access policy, comma separated
+4. Lock it with Cloudflare Access, as on the headphones site: Zero Trust → Access → Applications → Add →
+   Self-hosted, domain `steam.codeman.club` with paths `admin`, `admin.html` and `api/admin/*`, and an Allow policy
+   with an Emails selector listing who may use the admin. The site itself doesn't check who's signed in, so these
+   paths must all be covered. Pages serves `admin.html` at `/admin`, which is why both are listed.
 
-   `functions/_middleware.js` checks every request to the admin page and its API: the Access token has to be signed
-   by your team, be for this Access application, not be expired, and carry one of those emails. So the admin stays
-   closed even if the Access rule is deleted or loosened, and to add or remove an admin you change both the Access
-   policy and `ADMIN_EMAILS`. Redeploy after changing variables.
-6. Open `https://steam.codeman.club/admin.html` and click "Load the built-in list".
+   The admin page stays blank behind a Sign in button until `/api/admin/whoami` (behind Access) says who's signed
+   in; the button opens that URL so Access can show its login, then sends you back to `/admin`. If whoami says the
+   request didn't come through Access, `api/admin/*` isn't covered by the application.
+5. Open `https://steam.codeman.club/admin.html` and click "Load the built-in list".
 
 
 ## Updating the sale dates
@@ -97,6 +93,6 @@ served over HTTP, because it reads the CSS and script files to inline them.
 
 External requests: Chart.js (jsDelivr), the Albert Sans font (Google Fonts), SheetJS (cdnjs) only when an Excel
 file is imported, and `/api/known-data` on the live site. The admin page and its API need `wrangler pages dev` with a
-D1 binding locally; set `ADMIN_DEV=1` in `.dev.vars` to skip the admin sign-in check there (never set it on the live site).
+D1 binding locally.
 
 Not affiliated with Valve.

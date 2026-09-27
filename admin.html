@@ -13,6 +13,7 @@
   .adm { max-width: 1100px; margin: 0 auto; padding: 20px 16px 60px; }
   .adm h1 { color: var(--ink); font-size: 24px; margin: 0 0 4px; }
   .adm .sub { color: var(--muted); margin: 0 0 18px; }
+  .adm .who { color: var(--muted); font-size: 13px; margin: 0 0 6px; }
   .tabs { display: flex; gap: 4px; flex-wrap: wrap; border-bottom: 1px solid var(--rule); margin-bottom: 14px; }
   .tabs button { background: none; border: 0; border-bottom: 2px solid transparent; color: var(--muted); font: inherit;
     font-weight: 600; padding: 8px 12px; cursor: pointer; }
@@ -42,8 +43,16 @@
 </style>
 </head>
 <body>
-<main class="adm">
+<section class="adm" id="gate" hidden>
   <h1>Admin</h1>
+  <p class="sub">Sign in with Cloudflare Access to edit what the <a href="/">Spending Replay</a> matches against.</p>
+  <p><a class="tbtn" href="/api/admin/whoami?next=/admin">Sign in</a></p>
+  <div id="gateMsg"></div>
+</section>
+
+<main class="adm" id="app" hidden>
+  <h1>Admin</h1>
+  <p class="who" id="who"></p>
   <p class="sub">What the <a href="/">Spending Replay</a> matches against: packs and renamed games (licenses → games),
     bundles (unlinked keys → a suggested purchase) and free-to-play games. Changes go live within a minute.</p>
 
@@ -91,12 +100,44 @@ const money = v => (v == null ? 'price unknown' : '$' + Number(v).toFixed(2));
 
 async function api(path, method = 'GET', body) {
   const response = await fetch('/api/admin/' + path, {
-    method, headers: body ? { 'Content-Type': 'application/json' } : {}, body: body ? JSON.stringify(body) : undefined,
+    method, redirect: 'manual',
+    headers: body ? { 'Content-Type': 'application/json' } : {}, body: body ? JSON.stringify(body) : undefined,
   });
-  // behind Cloudflare Access, an expired session gets the sign-in page instead of JSON
-  const data = await response.json().catch(() => ({ ok: false, error: `Not a JSON answer (${response.status}). Your Access session may have expired — refresh to sign in.` }));
+  // without a Cloudflare Access session, Access answers with a redirect to its sign-in page
+  if (response.type === 'opaqueredirect') {
+    showGate('Your sign-in has expired. Sign in again; anything you were editing wasn\'t saved.');
+    throw new Error('Not signed in.');
+  }
+  const data = await response.json().catch(() => ({ ok: false, error: `The server answered ${response.status}.` }));
   if (!data.ok) throw new Error(data.error || 'Something went wrong.');
   return data;
+}
+
+// ---------- signing in ----------
+// The admin only shows once /api/admin/whoami, which sits behind Cloudflare Access, says who's signed in. A fetch
+// can't follow Access to its sign-in page, so the Sign in button opens whoami as a page instead: Access asks for the
+// login there, and whoami then sends the browser back here.
+function showGate(message) {
+  $('#app').hidden = true;
+  $('#gate').hidden = false;
+  if ($('#dlg').open) $('#dlg').close();
+  $('#gateMsg').innerHTML = message ? `<div class="msg warn">${esc(message)}</div>` : '';
+}
+
+async function checkSignIn() {
+  let who = null;
+  try {
+    const response = await fetch('/api/admin/whoami', { redirect: 'manual', cache: 'no-store' });
+    if (response.type !== 'opaqueredirect') who = await response.json();
+  } catch (_) { /* not signed in, or offline */ }
+  if (!who || !who.ok) {
+    showGate(who && who.error);
+    return;
+  }
+  $('#gate').hidden = true;
+  $('#app').hidden = false;
+  $('#who').innerHTML = `Signed in as ${esc(who.email)} · <a href="/cdn-cgi/access/logout">Sign out</a>`;
+  load();
 }
 
 function toast(text) {
@@ -307,7 +348,7 @@ $('#del').onclick = remove;
 $('#cancel').onclick = $('#dlgX').onclick = () => $('#dlg').close();
 $('#seed').onclick = seed;
 $('#export').onclick = exportFile;
-load();
+checkSignIn();
 </script>
 </body>
 </html>
