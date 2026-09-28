@@ -171,6 +171,10 @@ function classifyRow(r) {
     mbuy: CATEGORY.market,
   }[r.kind] || null;
   r.refunded = r.items.map(() => false);
+  // refund matches are worked out again on every analysis; clear the last run's so they don't pile up (and don't
+  // get saved into a downloaded report)
+  delete r.refAmt;
+  delete r.unnamedRef;
 }
 
 // Relative weights for splitting one checkout's total between its items, by each item's list price today.
@@ -227,43 +231,68 @@ function splitSelfGiftCheckouts(rows, gamesPage) {
 }
 
 // Marks refunded items on the purchase each refund came from and gives each refund that purchase's category.
-// A refund that names its item matches the latest earlier purchase of it. One that names nothing matches the
-// latest purchase in the 60 days before it that could cover the amount. Returns how many refunds named nothing.
+// Steam gives a refund the same transaction id as its checkout, so that checkout (or either part of it, once split
+// into gift and store parts) is tried first, and within it the copy that went to the same recipient. Without a
+// shared id, a refund that names its item matches the latest earlier purchase of it, and one that names nothing
+// matches the latest purchase in the 60 days before it that could cover the amount. Returns how many refunds
+// named nothing.
 function matchRefunds(refunds, spend) {
   let unnamed = 0;
   for (const refund of refunds) {
-    const names = refund.items.map(i => i.name).filter(n => !/^Refund$/i.test(n));
+    const named = refund.items.filter(i => !/^Refund$/i.test(i.name));
+    const fromCheckout = p => !!refund.tid && p.tid === refund.tid && p.kind !== 'mbuy';
     let cat = null;
-    for (const name of names) {
-      for (let i = spend.length - 1; i >= 0; i--) {
-        const p = spend[i];
-        if (p.date > refund.date || p.kind === 'mbuy') continue;
-        const k = p.items.findIndex((it, j) => it.name === name && !p.refunded[j]);
-        if (k < 0) continue;
-        p.refunded[k] = true;
-        if (names.length === 1) (p.refAmt = p.refAmt || {})[k] = refund.total;
-        cat = cat || p.cat;
-        break;
-      }
+    for (const item of named) {
+      const hit = refundedItem(spend, refund, item, fromCheckout);
+      if (!hit) continue;
+      const [p, k] = hit;
+      p.refunded[k] = true;
+      if (named.length === 1) (p.refAmt = p.refAmt || {})[k] = refund.total;
+      cat = cat || p.cat;
     }
-    if (!names.length) {
+    if (!named.length) {
       unnamed++;
-      const earliest = addDays(refund.date, -60);
-      for (let i = spend.length - 1; i >= 0; i--) {
-        const p = spend[i];
-        if (p.date > refund.date || p.kind === 'mbuy') continue;
-        if (p.date < earliest) break;
-        if (p.total >= refund.total - HALF_CENT) {
-          cat = p.cat;
-          (p.unnamedRef = p.unnamedRef || []).push(refund.total);
-          break;
+      let p = spend.find(s => fromCheckout(s) && s.total >= refund.total - HALF_CENT);
+      if (!p) {
+        const earliest = addDays(refund.date, -60);
+        for (let i = spend.length - 1; i >= 0; i--) {
+          const s = spend[i];
+          if (s.date > refund.date || s.kind === 'mbuy') continue;
+          if (s.date < earliest) break;
+          if (s.total >= refund.total - HALF_CENT) {
+            p = s;
+            break;
+          }
         }
+      }
+      if (p) {
+        cat = p.cat;
+        (p.unnamedRef = p.unnamedRef || []).push(refund.total);
       }
     }
     refund.cat = cat || CATEGORY.mine;
-    refund.matched = !!names.length;
+    refund.matched = !!named.length;
   }
   return unnamed;
+}
+
+// The [purchase, item index] a refunded item comes from: its own checkout first (same recipient, then any copy
+// not yet refunded), then the latest earlier purchase of it (same recipient first again). null if none.
+function refundedItem(spend, refund, item, fromCheckout) {
+  const to = item.to || null;
+  const find = (p, sameRecipient) => p.items.findIndex((it, j) =>
+    it.name === item.name && !p.refunded[j] && (!sameRecipient || (it.to || null) === to));
+  const own = spend.filter(fromCheckout);
+  const earlier = spend.filter(p => p.date <= refund.date && p.kind !== 'mbuy').reverse();
+  for (const list of [own, earlier]) {
+    for (const sameRecipient of [true, false]) {
+      for (const p of list) {
+        const k = find(p, sameRecipient);
+        if (k >= 0) return [p, k];
+      }
+    }
+  }
+  return null;
 }
 
 // What a checkout is still worth after refunds of some of its items.
