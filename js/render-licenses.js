@@ -73,7 +73,7 @@ function licenseNotes(licenses) {
   return [
     `Product keys come from Steam's "Licenses and product key activations" page, ${formatDate(licenses.first)} to ${formatDate(licenses.last)}. Anything marked Retail there counts as a key. Keys have no price attached, so they never feed into the dollar figures.`,
     'Each row on that page is a license, not a key. A single key occasionally grants more than one license (a game plus its soundtrack, say), so the key count can run slightly high.',
-    betas ? `${pluralize(betas, 'beta or playtest key', 'beta and playtest keys')} ${betas === 1 ? 'is' : 'are'} listed but not counted as keys.` : null,
+    betas ? `${pluralize(betas, 'beta or playtest', 'betas and playtests')} (keys, free sign-ups and gifts) ${betas === 1 ? 'is' : 'are'} listed on their own, not counted as keys, free games or gifts.` : null,
     'Region and packaging tags like "(RoW)", "Retail" or "[Digital]" are trimmed from license names; hover a row to see Steam\'s original package name.',
     '"Bought on Steam", "Free" and "Gifts received" use Steam\'s own labels (Steam Store, Complimentary, Gift/Guest Pass).',
     ordersOf(report.keyPurchases).length ? 'Keys marked 3rd-party were bought from a key store outside Steam, from order receipts you provided. Their cost is shown next to each key but kept out of all Steam spending figures.' : null,

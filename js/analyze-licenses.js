@@ -20,7 +20,10 @@ const ACQUISITION_SOURCE = {
   'Other': 'other',
 };
 
-const BETA_PATTERN = /beta testing|\bbeta$|playtest/i;
+// Betas, playtests and test builds: keys, free claims and gifts whose name says so, plus a few that don't.
+const BETA_PATTERN = /\bbeta\b|playtest|\b(?:big|closed|open) alpha\b|\bsneak peek\b/i;
+const BETA_LICENSES = new Set(['shatterline test', 'steam streaming app early access comp']);
+const isBeta = r => ['key', 'free', 'gift'].includes(r.source) && (BETA_PATTERN.test(r.item) || BETA_LICENSES.has(r.item.toLowerCase()));
 
 // Returns null when there's nothing dated to show.
 function analyzeLicenses(licenseRows, gamesPage) {
@@ -29,9 +32,12 @@ function analyzeLicenses(licenseRows, gamesPage) {
     .map((r, i) => ({ ...r, order: i, source: ACQUISITION_SOURCE[r.acq] }))
     .filter(r => r.source);
   for (const r of rows) {
-    if (r.source === 'key' && BETA_PATTERN.test(r.item)) r.source = 'beta';
+    if (isBeta(r)) {
+      r.betaOf = r.source;
+      r.source = 'beta';
+    }
   }
-  if (gamesPage && gamesPage.games) reclassifyFullGameBetaKeys(rows, gamesPage.games);
+  if (gamesPage && gamesPage.games) reclassifyFullGameBetas(rows, gamesPage.games);
 
   // newest first; rows with no date go last
   rows.sort((a, b) => {
@@ -78,15 +84,17 @@ function analyzeLicenses(licenseRows, gamesPage) {
     totals,
     list: rows.map(r => {
       const name = cleanLicenseName(r.item);
-      return { date: r.date, name, rawName: name !== r.item ? r.item : '', steamName: r.item, source: r.source };
+      const license = { date: r.date, name, rawName: name !== r.item ? r.item : '', steamName: r.item, source: r.source };
+      if (r.source === 'beta') license.betaOf = r.betaOf;
+      return license;
     }),
   };
 }
 
-// Some keys are issued as "Game for Beta Testing" / "Game - Beta Testing" packages but grant the full game. If the
-// name without the suffix is something Steam lists as a game, and nothing else on the account grants it, the key
-// counts as a key for that game.
-function reclassifyFullGameBetaKeys(rows, games) {
+// Some games are handed out as "Game for Beta Testing" / "Game - Beta Testing" packages that grant the full game. If
+// the name without the suffix is something Steam lists as a game, and nothing else on the account grants it, the
+// license goes back to being a key (or free claim, or gift) for that game.
+function reclassifyFullGameBetas(rows, games) {
   const match = makeNameMatcher(games);
   const granted = new Set();
   for (const r of rows) {
@@ -100,7 +108,7 @@ function reclassifyFullGameBetaKeys(rows, games) {
     if (base === r.item) continue;
     const game = match(base, false);
     if (game && (game.t === 0 || game.t == null) && !granted.has(game.id)) {
-      r.source = 'key';
+      r.source = r.betaOf;
       granted.add(game.id);
     }
   }

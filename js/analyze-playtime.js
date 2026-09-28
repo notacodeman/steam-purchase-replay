@@ -163,7 +163,7 @@ function neverPlayedBySource(games, match, licenseList, gameLinks) {
   const claimed = new Set([...matchedLicenses.values()].flat());
   const looseLicenses = licensesByLooseName(games, match, licenseList, claimed);
   const freeToPlay = new Set(FREE_TO_PLAY.map(name => match(name, false)).filter(Boolean).map(g => g.id));
-  const sourceOf = license => license.source === 'beta' ? 'key' : license.source;
+  const sourceOf = license => license.source === 'beta' ? license.betaOf || 'key' : license.source;
   const bySrc = { store: [0, 0], key: [0, 0], free: [0, 0], gift: [0, 0], other: [0, 0] };
   const unmatched = [];
   const handMatched = [];
