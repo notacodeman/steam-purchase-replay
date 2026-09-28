@@ -315,6 +315,7 @@ const KNOWN_PACKAGES = [
     ['SEGA Mega Drive & Genesis Classics']],
 ];
 
+// Only Steam keys are listed: Humble Originals (DRM-free) and Uplay/Origin keys are left out.
 const KNOWN_BUNDLES = [
   { name: 'Humble Yogscast Jingle Jam 2017', store: 'Humble Bundle', kind: 'bundle', date: '2017-12-01', price: 35, games: [
     'All-Star Fruit Racing - Yogscast Exclusive DLC', 'Ancient Planet Tower Defense', 'Auto Age: Standoff',
@@ -332,18 +333,166 @@ const KNOWN_BUNDLES = [
     'Tales from Candlekeep: Tomb of Annihilation', 'Team Racing League', 'Teslagrad', 'The Fall', 'The Inner World',
     'Tiltagon', 'Toy Odyssey: The Lost and Found', 'Train Valley', 'War for the Overworld - Yogscast Worker Skin',
     'Warhammer: End Times - Vermintide: Dwarf Helmet', 'Wasted Pizza', 'Zero Reflex: Black Eye Edition'] },
-  { name: 'September 2018 Humble Monthly', store: 'Humble Bundle', kind: 'sub', date: '2018-08-31', price: 12, games: [
-    'Rise of the Tomb Raider', 'Sniper Elite 4', 'Tales of Berseria', 'Staxel', 'Little Nightmares',
-    'Darksiders II Deathinitive Edition', 'Battle Chef Brigade', 'Zombie Night Terror', 'Figment', 'Ethereal'] },
-  { name: 'December 2018 Humble Monthly', store: 'Humble Bundle', kind: 'sub', date: '2018-11-30', price: 12, games: [
+  // Humble Monthly (November 2015 to December 2019), Steam keys only, checked against gg.deals and barter.vg.
+  // date is the first Friday of the month before, when that month's early unlocks went out; the rest followed on the
+  // first Friday of the month itself. Some games are listed twice under different names so older licenses match.
+  { name: 'November 2015 Humble Monthly', store: 'Humble Bundle', kind: 'sub', date: '2015-10-02', price: 12, games: [
+    'Legend of Grimrock 2', 'TowerFall Ascension', 'Besiege', 'Valkyria Chronicles', 'Lethal League',
+    'SanctuaryRPG: Black Edition', 'Saints Row IV'] },
+  { name: 'December 2015 Humble Monthly', store: 'Humble Bundle', kind: 'sub', date: '2015-11-06', price: 12, games: [
+    'TowerFall Ascension', 'PAYDAY 2', 'Banished', 'Rust', 'NEON STRUCT', 'Chroma Squad', 'Company of Heroes 2',
+    'Company of Heroes 2 - The British Forces', 'Company of Heroes 2 - The Western Front Armies'] },
+  { name: 'January 2016 Humble Monthly', store: 'Humble Bundle', kind: 'sub', date: '2015-12-04', price: 12, games: [
+    'The Talos Principle', 'The Masterplan', 'Mushroom 11', 'Grim Fandango Remastered', 'Spelunky', 'A Fistful of Gun'] },
+  { name: 'February 2016 Humble Monthly', store: 'Humble Bundle', kind: 'sub', date: '2016-01-01', price: 12, games: [
+    'Alien: Isolation', 'Broken Age', 'Penarium', 'Dropsy', 'Titan Souls', 'Volume'] },
+  { name: 'March 2016 Humble Monthly', store: 'Humble Bundle', kind: 'sub', date: '2016-02-05', price: 12, games: [
+    'ARK: Survival Evolved', "Wasteland 2: Director's Cut", 'Wasteland 1 - The Original Classic', 'GRAV',
+    "Shantae and the Pirate's Curse", 'I am Bread', 'Sentinels of the Multiverse', 'Switchcars',
+    'BATTLESLOTHS 2025: The Great Pizza Wars'] },
+  { name: 'April 2016 Humble Monthly', store: 'Humble Bundle', kind: 'sub', date: '2016-03-04', price: 12, games: [
+    'South Park: The Stick of Truth', 'This War of Mine', 'Nuclear Throne',
+    'Renowned Explorers: International Society', 'Nova-111', 'The Magic Circle', 'Avalanche 2: Super Avalanche',
+    'Stikbold! A Dodgeball Adventure'] },
+  { name: 'May 2016 Humble Monthly', store: 'Humble Bundle', kind: 'sub', date: '2016-04-01', price: 12, games: [
+    'Mad Max', 'Infinifactory', 'Crawl', 'JumpJet Rex', 'Fran Bow', 'GALAK-Z: The Dimensional',
+    "Oddworld: New 'n' Tasty", '1993 Space Machine', 'Gunmetal Arcadia Zero'] },
+  { name: 'June 2016 Humble Monthly', store: 'Humble Bundle', kind: 'sub', date: '2016-05-06', price: 12, games: [
+    'Rocket League', 'The Forest', 'Planetary Annihilation: TITANS', 'Steredenn', 'WASTED',
+    'Dungeon of the Endless - Crystal Edition', 'Dungeon of the Endless', 'Keep Talking and Nobody Explodes'] },
+  { name: 'July 2016 Humble Monthly', store: 'Humble Bundle', kind: 'sub', date: '2016-06-03', price: 12, games: [
+    'Hurtworld', 'Kentucky Route Zero', 'Satellite Reign', 'TIS-100', 'The Red Solstice', 'Avernum 2: Crystal Souls',
+    'Cthulhu Realms - Full Version', 'Copoka'] },
+  { name: 'August 2016 Humble Monthly', store: 'Humble Bundle', kind: 'sub', date: '2016-07-01', price: 12, games: [
+    'Call of Duty: Black Ops III - Multiplayer Starter Pack', 'Poi', 'The Jackbox Party Pack 2', 'Planet of the Eyes',
+    'Random Access Murder', 'Starward Rogue', 'The Incredible Adventures of Van Helsing: Final Cut'] },
+  { name: 'September 2016 Humble Monthly', store: 'Humble Bundle', kind: 'sub', date: '2016-08-05', price: 12, games: [
+    'SOMA', 'The Banner Saga', 'WWE 2K16', 'Sheltered', 'Epistory - Typing Chronicles', 'Town of Salem'] },
+  { name: 'October 2016 Humble Monthly', store: 'Humble Bundle', kind: 'sub', date: '2016-09-02', price: 12, games: [
+    'Grim Dawn', 'Slime Rancher', 'Hotline Miami 2: Wrong Number', 'Deponia Doomsday', 'Train Valley', 'Action Henk',
+    'Thoth', 'Fidel Dungeon Rescue'] },
+  { name: 'November 2016 Humble Monthly', store: 'Humble Bundle', kind: 'sub', date: '2016-10-07', price: 12, games: [
+    'Stardew Valley', 'Broforce', 'Rebel Galaxy', 'Beyond Eyes', 'Kathy Rain', 'Styx: Master of Shadows',
+    'Pirate Pop Plus', 'Keyboard Sports - Saving QWERTY'] },
+  { name: 'December 2016 Humble Monthly', store: 'Humble Bundle', kind: 'sub', date: '2016-11-04', price: 12, games: [
+    "Dragon's Dogma: Dark Arisen", 'The Escapists', 'The Escapists - Alcatraz',
+    'The Escapists - Duct Tapes are Forever', 'The Escapists - Escape Team',
+    'The Escapists - Fhurst Peak Correctional Facility', 'Mordheim: City of the Damned', 'Hacknet', 'Western Press',
+    'Western Press - Cans Mk II', 'The Flame in the Flood', 'Minion Masters', 'Minion Masters - Premium Upgrade'] },
+  { name: 'January 2017 Humble Monthly', store: 'Humble Bundle', kind: 'sub', date: '2016-12-02', price: 12, games: [
+    'Warhammer: End Times - Vermintide', 'Warhammer: End Times - Vermintide Schluesselschloss',
+    'Warhammer: End Times - Vermintide The Outsider', 'Project CARS', 'Mother Russia Bleeds',
+    'The Legend of Heroes: Trails in the Sky', 'Neon Chrome', 'Jotun: Valhalla Edition', 'HoPiKo', 'Kimmy'] },
+  { name: 'February 2017 Humble Monthly', store: 'Humble Bundle', kind: 'sub', date: '2017-01-06', price: 12, games: [
+    'XCOM 2', 'Ryse: Son of Rome', 'ABZU', 'SteamWorld Heist', 'Okhlos: Omega', 'Project Highrise', 'Husk'] },
+  { name: 'March 2017 Humble Monthly', store: 'Humble Bundle', kind: 'sub', date: '2017-02-03', price: 12, games: [
+    'Total War: WARHAMMER', 'Poly Bridge', 'Space Run Galaxy', 'One Piece Pirate Warriors 3', 'RIVE', 'Flat Heroes',
+    'Morphblade'] },
+  { name: 'April 2017 Humble Monthly', store: 'Humble Bundle', kind: 'sub', date: '2017-03-03', price: 12, games: [
+    'The Witness', 'Layers of Fear: Masterpiece Edition', 'Black Mesa', 'Kingdom: New Lands', 'Event[0]',
+    'Tumblestone', 'Slime-san: Superslime Edition'] },
+  { name: 'May 2017 Humble Monthly', store: 'Humble Bundle', kind: 'sub', date: '2017-04-07', price: 12, games: [
+    'DiRT Rally', 'INSIDE', 'This Is the Police', 'Undertale', 'Metrico+', 'The Turing Test',
+    'GoNNER - Press Jump To Die Edition', 'Super Rude Bear Resurrection', 'A2Be - A Science-Fiction Narrative'] },
+  { name: 'June 2017 Humble Monthly', store: 'Humble Bundle', kind: 'sub', date: '2017-05-05', price: 12, games: [
+    'Stellaris', 'Ashes of the Singularity: Escalation', 'Brigador: Up-Armored Edition', 'Maize',
+    'Plague Inc: Evolved', 'SUPERHOT', 'Shoppe Keep - Deluxe Edition', 'Tiny Echo'] },
+  { name: 'July 2017 Humble Monthly', store: 'Humble Bundle', kind: 'sub', date: '2017-06-02', price: 12, games: [
+    'DARK SOULS II: Scholar of the First Sin', 'Galactic Civilizations III', 'Armello', 'Hyper Light Drifter',
+    'Kero Blaster', "Sherlock Holmes: The Devil's Daughter", 'SimplePlanes'] },
+  { name: 'August 2017 Humble Monthly', store: 'Humble Bundle', kind: 'sub', date: '2017-07-07', price: 12, games: [
+    'Pillars of Eternity', 'NBA 2K17', 'Offworld Trading Company', 'One Piece Burning Blood', 'Overcooked',
+    'War for the Overworld', 'Wuppo: Definitive Edition', 'Nongünz', 'Wuppo'] },
+  { name: 'September 2017 Humble Monthly', store: 'Humble Bundle', kind: 'sub', date: '2017-08-04', price: 12, games: [
+    'Killing Floor 2', 'The Banner Saga 2', 'Worms W.M.D', 'Stories Untold', 'Momodora: Reverie Under The Moonlight',
+    'HackyZack', 'Eterium'] },
+  { name: 'October 2017 Humble Monthly', store: 'Humble Bundle', kind: 'sub', date: '2017-09-01', price: 12, games: [
+    'Rise of the Tomb Raider', 'Wargame: Red Dragon', 'Furi', 'Getting Over It with Bennett Foddy',
+    'Orwell: Keeping an Eye On You', 'Scanner Sombre', 'Seasons after Fall', 'The Shrouded Isle'] },
+  { name: 'November 2017 Humble Monthly', store: 'Humble Bundle', kind: 'sub', date: '2017-10-06', price: 12, games: [
+    'The Elder Scrolls Online', 'Resident Evil 5 Gold Edition', 'Dead Rising 2',
+    'Shadow Tactics: Blades of the Shogun', 'Quake Champions', 'Emily is Away Too', 'Silence', 'World to the West'] },
+  { name: 'December 2017 Humble Monthly', store: 'Humble Bundle', kind: 'sub', date: '2017-11-03', price: 12, games: [
+    'BlazBlue: Chronophantasma Extend', 'Nex Machina', 'Passpartout: The Starving Artist', 'Rivals of Aether',
+    'STRAFE: Gold Edition', 'The Sexy Brutale', 'Z1 Battle Royale', 'H1Z1'] },
+  { name: 'January 2018 Humble Monthly', store: 'Humble Bundle', kind: 'sub', date: '2017-12-01', price: 12, games: [
+    'Tomb Raider', 'Quantum Break', 'Warhammer 40,000: Dawn of War III', 'Sleeping Dogs: Definitive Edition',
+    'The Long Dark', 'HIVESWAP: ACT 1', 'Mr. Shifty', 'Cursed Castilla (Maldita Castilla EX)'] },
+  { name: 'February 2018 Humble Monthly', store: 'Humble Bundle', kind: 'sub', date: '2018-01-05', price: 12, games: [
+    "Sid Meier's Civilization VI", "Sid Meier's Civilization VI: Australia Civilization & Scenario Pack",
+    "Sid Meier's Civilization VI: Vikings Scenario Pack", 'Life is Strange Complete Season (Episodes 1-5)', 'Owlboy',
+    'Tacoma', 'Snake Pass', 'Black The Fall', 'The Norwood Suite', 'Fortune-499',
+    'Civilization VI - Vikings Scenario Pack', 'Civilization VI - Australia Civilization & Scenario Pack'] },
+  { name: 'March 2018 Humble Monthly', store: 'Humble Bundle', kind: 'sub', date: '2018-02-02', price: 12, games: [
+    'DARK SOULS III', 'DARK SOULS III - Ashes of Ariandel', 'Aviary Attorney', "Holy Potatoes! We're in Space?!",
+    'Last Day of June', 'Lost Castle', 'Overgrowth', 'Splasher'] },
+  { name: 'April 2018 Humble Monthly', store: 'Humble Bundle', kind: 'sub', date: '2018-03-02', price: 12, games: [
+    'Deus Ex: Mankind Divided', 'Mafia III: Definitive Edition', 'Mafia III: Sign of the Times', 'Outlast 2',
+    "Sid Meier's Civilization: Beyond Earth - The Collection", 'GOD EATER 2 Rage Burst', 'Lara Croft GO',
+    'Laser League: World Arena', 'AER Memories of Old', 'Subterrain', 'AER'] },
+  { name: 'May 2018 Humble Monthly', store: 'Humble Bundle', kind: 'sub', date: '2018-04-06', price: 12, games: [
+    'Kerbal Space Program', 'Dead Rising 4', 'RUINER', 'NBA Playgrounds', 'Crazy Machines 3', 'Jalopy',
+    'Moon Hunters', 'RUNNING WITH RIFLES'] },
+  { name: 'June 2018 Humble Monthly', store: 'Humble Bundle', kind: 'sub', date: '2018-05-04', price: 12, games: [
+    'Yooka-Laylee', 'Styx: Shards of Darkness', "Ken Follett's The Pillars of the Earth",
+    'Cook, Serve, Delicious! 2!!', "Bear With Me - Collector's Edition", 'Acceleration of SUGURI 2',
+    'Subserial Network'] },
+  { name: 'July 2018 Humble Monthly', store: 'Humble Bundle', kind: 'sub', date: '2018-06-01', price: 12, games: [
+    'Hearts of Iron IV', 'Portal Knights', 'Titan Quest Anniversary Edition', 'Titan Quest: Ragnarök',
+    'Interplanetary: Enhanced Edition', 'Shiness: The Lightning Kingdom', 'Forts', 'Serial Cleaner', 'Blackwake',
+    'Titan Quest Anniversary + Ragnarok'] },
+  { name: 'August 2018 Humble Monthly', store: 'Humble Bundle', kind: 'sub', date: '2018-07-06', price: 12, games: [
+    'A Hat in Time', 'The Escapists 2', 'Conan Exiles', 'The Surge', 'Sudden Strike 4', 'Kona',
+    'Pathologic Classic HD', 'Forged Battalion'] },
+  { name: 'September 2018 Humble Monthly', store: 'Humble Bundle', kind: 'sub', date: '2018-08-03', price: 12, games: [
+    'Sniper Elite 4', 'Tales of Berseria', 'Staxel', 'Rise of the Tomb Raider', 'Little Nightmares',
+    'Darksiders II Deathinitive Edition', 'Battle Chef Brigade', 'Zombie Night Terror', 'Figment', 'ETHEREAL'] },
+  { name: 'October 2018 Humble Monthly', store: 'Humble Bundle', kind: 'sub', date: '2018-09-07', price: 12, games: [
+    'American Truck Simulator', 'Dungeons 3', 'Gremlins, Inc.', 'Hidden Folks', "Old Man's Journey",
+    'We Were Here Too'] },
+  { name: 'November 2018 Humble Monthly', store: 'Humble Bundle', kind: 'sub', date: '2018-10-05', price: 12, games: [
+    '7 Days to Die', 'HITMAN: THE COMPLETE FIRST SEASON', 'Hollow Knight', 'Dead Island Definitive Edition',
+    'Resident Evil Revelations', 'Hard Reset Redux', 'Sniper Elite', 'Sniper Elite V2', 'The Dwarves'] },
+  { name: 'December 2018 Humble Monthly', store: 'Humble Bundle', kind: 'sub', date: '2018-11-02', price: 12, games: [
     'METAL GEAR SOLID V: The Definitive Experience', 'Cities: Skylines', 'Cities: Skylines - After Dark',
-    'Mega Man Legacy Collection', 'Zombie Army Trilogy', 'Immortal Redneck', 'Purrfect Date', 'Seven: Enhanced Edition',
-    'NeuroVoider', 'Cut & Run'] },
-  { name: 'May 2019 Humble Monthly', store: 'Humble Bundle', kind: 'sub', date: '2019-04-26', price: 12, games: [
-    "Assassin's Creed Origins", 'Wandersong', 'Finding Paradise', 'The Journey Down: Chapter Three',
-    'Do Not Feed the Monkeys', 'I am not a Monster', 'Once Upon a Crime in the West'] },
-  { name: 'September 2019 Humble Monthly', store: 'Humble Bundle', kind: 'sub', date: '2019-08-30', price: 12, games: [
+    'Mega Man Legacy Collection', 'Zombie Army Trilogy', 'Immortal Redneck', 'Purrfect Date',
+    'Seven: Enhanced Edition', 'NeuroVoider', 'METAL GEAR SOLID V: GROUND ZEROES',
+    'METAL GEAR SOLID V: THE PHANTOM PAIN'] },
+  { name: 'January 2019 Humble Monthly', store: 'Humble Bundle', kind: 'sub', date: '2018-12-07', price: 12, games: [
+    'Project CARS 2', 'Just Cause 3 XXL Edition', '>observer_', 'Q.U.B.E. 2', 'Regions Of Ruin',
+    'Sundered: Eldritch Edition', 'The Darkside Detective', 'Wizard of Legend', 'Roombo: First Blood'] },
+  { name: 'February 2019 Humble Monthly', store: 'Humble Bundle', kind: 'sub', date: '2019-01-04', price: 12, games: [
+    'Yakuza 0', 'Rock of Ages 2: Bigger & Boulder', 'Sniper Elite 3', 'Aaero', 'Bleed 2', 'Full Metal Furies',
+    'Rapture Rejects', 'Super Daryl Deluxe'] },
+  { name: 'March 2019 Humble Monthly', store: 'Humble Bundle', kind: 'sub', date: '2019-02-01', price: 12, games: [
+    "Warhammer: Vermintide 2 - Collector's Edition", 'EARTH DEFENSE FORCE 4.1 The Shadow of New Despair',
+    'Cultist Simulator', "Fight'N Rage", 'Gleipnir', 'Late Shift', 'Paradigm', 'Slipstream', 'Tower Unite'] },
+  { name: 'April 2019 Humble Monthly', store: 'Humble Bundle', kind: 'sub', date: '2019-03-01', price: 12, games: [
+    'Mutant Year Zero: Road to Eden', 'Northgard: Definitive Edition', 'Absolver', 'Dandara: Trials of Fear Edition',
+    'Minit', 'She Remembered Caterpillars', 'Steel Rats', 'Tannenberg'] },
+  { name: 'May 2019 Humble Monthly', store: 'Humble Bundle', kind: 'sub', date: '2019-04-05', price: 12, games: [
+    'Wandersong', 'Finding Paradise', 'Monster Prom', 'The Journey Down: Chapter Three', 'Do Not Feed the Monkeys',
+    'I am not a Monster: First Contact'] },
+  { name: 'June 2019 Humble Monthly', store: 'Humble Bundle', kind: 'sub', date: '2019-05-03', price: 12, games: [
+    'Red Faction Guerrilla Re-Mars-tered', '911 Operator', '911 Operator - Special Resources', 'Duskers', 'Paratopic',
+    'Pool Panic', 'macdows 95'] },
+  { name: 'July 2019 Humble Monthly', store: 'Humble Bundle', kind: 'sub', date: '2019-06-07', price: 12, games: [
+    "Hellblade: Senua's Sacrifice", 'Warhammer 40,000: Mechanicus', 'Moonlighter', '60 Parsecs!', 'Love is Dead',
+    'NAIRI: Tower of Shirin', 'Road Redemption', 'Kind Words (lo fi chill beats to write to)'] },
+  { name: 'August 2019 Humble Monthly', store: 'Humble Bundle', kind: 'sub', date: '2019-07-05', price: 12, games: [
+    'Kingdom Come: Deliverance', 'Surviving Mars', 'Rising Storm 2: Vietnam', 'Almost There: The Platformer',
+    'Swords and Soldiers 2 Shawarmageddon', 'The Adventure Pals', "Yoku's Island Express"] },
+  { name: 'September 2019 Humble Monthly', store: 'Humble Bundle', kind: 'sub', date: '2019-08-02', price: 12, games: [
     'Squad', 'Slay the Spire', 'Distance', 'Guacamelee! 2', 'MOTHERGUNSHIP', 'State of Mind', "God's Trigger"] },
+  { name: 'October 2019 Humble Monthly', store: 'Humble Bundle', kind: 'sub', date: '2019-09-06', price: 12, games: [
+    'BATTLETECH', 'BATTLETECH - Flashpoint', 'BATTLETECH Shadow Hawk Pack', 'Sonic Mania', 'Avernum 3: Ruined World',
+    'Override: Mech City Brawl', 'PLANET ALPHA', 'PUSS!', 'The Spiral Scouts'] },
+  { name: 'November 2019 Humble Monthly', store: 'Humble Bundle', kind: 'sub', date: '2019-10-04', price: 12, games: [
+    'Call of Duty: WWII', 'Crash Bandicoot N. Sane Trilogy', 'Spyro Reignited Trilogy', 'Shenmue I & II',
+    '11-11 Memories Retold', 'Evergarden', 'SYNTHETIK: Legion Rising'] },
+  { name: 'December 2019 Humble Monthly', store: 'Humble Bundle', kind: 'sub', date: '2019-11-01', price: 12, games: [
+    'SOULCALIBUR VI', 'Yakuza Kiwami', 'My Time at Portia', 'Chasm', 'Fluffy Horde', 'Regular Human Basketball',
+    'Sword Legacy Omen'] },
   { name: 'December 2019 Humble Choice', store: 'Humble Bundle', kind: 'sub', date: '2019-12-01', price: null, games: [
     'Aegis Defenders', 'Ancestors Legacy', 'Blasphemous', 'Dark Future: Blood Red States', 'Dead In Vinland',
     'Desert Child', 'Horizon Chase Turbo', 'Phantom Doctrine', 'Shadow of the Tomb Raider', 'X-Morph: Defense'] },
@@ -354,20 +503,29 @@ const KNOWN_BUNDLES = [
   { name: 'July 2020 Humble Choice', store: 'Humble Bundle', kind: 'sub', date: '2020-07-03', price: null, games: [
     'Age of Wonders: Planetfall Deluxe Edition', 'Void Bastards', 'Railway Empire', 'Sigma Theory: Global Cold War',
     'Beat Hazard 2', 'Verlet Swing', 'Earthlock', 'Basingstoke', "Don't Escape: 4 Days to Survive",
-    'Battlestar Galactica Deadlock', 'Metal Unit', 'Yuppie Psycho'] },
+    'Battlestar Galactica Deadlock', 'Metal Unit', 'Yuppie Psycho', 'Vikings - Wolves of Midgard'] },
+  { name: 'August 2020 Humble Choice', store: 'Humble Bundle', kind: 'sub', date: '2020-08-07', price: null, games: [
+    'A Case of Distrust', 'American Fugitive', 'Automachef', 'Call of Cthulhu', 'Genesis Alpha One Deluxe Edition',
+    'Hello Neighbor', 'Hello Neighbor: Hide and Seek', 'Little Big Workshop', 'The Coma 2: Vicious Sisters',
+    'Through the Darkest of Times', 'Vampyr', 'Wargroove', 'We Were Here Together'] },
   { name: 'September 2020 Humble Choice', store: 'Humble Bundle', kind: 'sub', date: '2020-09-01', price: null, games: [
     'Catherine Classic', 'Golf With Your Friends', 'Lethal League Blaze', 'Generation Zero', 'Forager',
     'Vampire: The Masquerade - Coteries of New York', 'Fun with Ragdolls: The Game', 'Strange Brigade',
-    'Evoland Legendary Edition', 'Yooka-Laylee and the Impossible Lair', 'The Occupation', 'The Shapeshifting Detective',
-    'Alt 2-5-4'] },
+    'Evoland Legendary Edition', 'Yooka-Laylee and the Impossible Lair', 'The Occupation', 'The Shapeshifting Detective'] },
   { name: 'December 2020 Humble Choice', store: 'Humble Bundle', kind: 'sub', date: '2020-12-01', price: null, games: [
     'Overcooked! 2', 'Overcooked! 2 - Too Many Cooks Pack', "Overcooked! 2 - Surf 'n' Turf", 'Children of Morta',
     'One Step From Eden', 'The Beast Inside', 'Indivisible', 'Shining Resonance Refrain', 'Zwei: The Arges Adventure',
     'Zwei: The Ilvard Insurrection', 'Tabletop Playground', 'The Haunted Island, a Frog Detective Game',
-    'Frog Detective 2: The Case of the Invisible Wizard', 'Still There', 'Struggling', 'Path of Giants', 'The Corridor'] },
+    'Frog Detective 2: The Case of the Invisible Wizard', 'Still There', 'Struggling', 'Path of Giants'] },
   { name: 'April 2023 Humble Choice', store: 'Humble Bundle', kind: 'sub', date: '2023-04-04', price: 11.99, games: [
     "DEATH STRANDING DIRECTOR'S CUT", 'Aliens: Fireteam Elite', 'Rollerdrome', 'Life is Strange 2 Complete Season',
     'The Life and Suffering of Sir Brante', 'Monster Prom 2: Monster Camp', 'Revita', "Founders' Fortune"] },
+  // DailyIndieGame Super Bundles. 34 went on sale July 9, 2015; 33's start isn't known, so it counts from the day
+  // after Super Bundle 31 (June 1, 2015).
+  { name: 'DailyIndieGame Super Bundle 33', store: 'DailyIndieGame', kind: 'bundle', date: '2015-06-02', price: 1.49, games: [
+    'Final Dusk', 'Make it indie!', 'R.O.O.T.S', 'iBomber Attack', 'iBomber Defense', 'iBomber Defense Pacific'] },
+  { name: 'DailyIndieGame Super Bundle 34', store: 'DailyIndieGame', kind: 'bundle', date: '2015-07-09', price: 1.49, games: [
+    'Bloop', 'Pitiri 1977', 'Storm in a Teacup', 'Streets of Chaos', 'The 39 Steps', "Uriel's Chasm"] },
   // Free key giveaways. Alienware Arena's drop was reported from July 16, 2026 and ran until keys ran out (the end
   // date isn't known, so it runs up to AMD's). AMD Gaming's was posted August 24-25 and gone by August 28.
   { name: 'Dwarven Realms (Alienware Arena giveaway)', store: 'Alienware Arena', kind: 'giveaway', date: '2026-07-16',
