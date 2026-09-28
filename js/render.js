@@ -292,10 +292,11 @@ function renderGifts(history, licenses) {
   const games = [...perGame.values()].sort((a, b) => count(b) - count(a) || a.name.localeCompare(b.name));
   const most = count(games[0]);
   const refundedFill = `repeating-linear-gradient(45deg,${COLORS.gift} 0 3px,transparent 3px 6px)`;
-  const segment = (n, background) => n ? `<div style="width:${(n / most * 100).toFixed(1)}%;background:${background}"></div>` : '';
+  // one bar per row, split into colours side by side and scaled to `max`
+  const segment = (n, max, background) => n ? `<div style="width:${(n / max * 100).toFixed(1)}%;background:${background}"></div>` : '';
   const gameRow = g => `<div class="bar">
       <span>${escapeHtml(g.name)}</span>
-      <div class="gbar">${segment(g.s, COLORS.gift)}${segment(g.k, COLORS.key)}${segment(g.r, refundedFill)}<div class="rest"></div></div>
+      <div class="gbar">${segment(g.s, most, COLORS.gift)}${segment(g.k, most, COLORS.key)}${segment(g.r, most, refundedFill)}<div class="rest"></div></div>
       <span class="v">${count(g)}</span>
     </div>`;
   $('#gLegend').innerHTML = `<span><i style="background:${COLORS.gift}"></i>Steam gift</span>${keyCount ? `<span><i style="background:${COLORS.key}"></i>3rd-party key</span>` : ''}<span><i style="background:${refundedFill}"></i>Refunded</span>`;
@@ -311,10 +312,16 @@ function renderGifts(history, licenses) {
   if (friends.length) {
     const aliases = friendAliases(history);
     const mostReceived = friends[0].s + friends[0].k;
-    const part = (n, color) => n ? `<div class="fl" style="width:${(n / mostReceived * 100).toFixed(1)}%;background:${color}"></div>` : '';
-    const friendRow = f => `<div class="bar"><span>${escapeHtml(hideNames ? aliases.get(f.name) : f.name)}</span><div class="trk">${part(f.s, COLORS.steam)}${part(f.k, COLORS.key)}</div><span class="v">${f.s + f.k}</span></div>`;
+    const friendRow = f => `<div class="bar">
+      <span>${escapeHtml(hideNames ? aliases.get(f.name) : f.name)}</span>
+      <div class="gbar">${segment(f.s, mostReceived, COLORS.gift)}${segment(f.k, mostReceived, COLORS.key)}<div class="rest"></div></div>
+      <span class="v">${f.s + f.k}</span>
+    </div>`;
+    const keysToFriends = friends.some(f => f.k);
+    $('#gFriendsLegend').innerHTML = `<span><i style="background:${COLORS.gift}"></i>Steam gift</span>${keysToFriends ? `<span><i style="background:${COLORS.key}"></i>3rd-party key</span>` : ''}`;
     lists.push({ selector: '#gFriends', items: friends, row: friendRow });
   } else {
+    $('#gFriendsLegend').innerHTML = '';
     $('#gFriends').innerHTML = '<p class="vempty">Steam didn\'t list who received these gifts.</p>';
   }
   scrollableLists(lists, '#gifts .grid2', 10);
