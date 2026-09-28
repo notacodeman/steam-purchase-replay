@@ -11,10 +11,13 @@
 //  - remasters and new versions Steam hands to owners of the original (BioShock → BioShock Remastered).
 // Licenses named after their game plus an edition ("Control Standard Edition") are matched without being listed here.
 //
-// KNOWN_BUNDLES: bundles sold as separate keys (Humble Choice months, store bundles). When two or more of a visitor's
-// unlinked key activations are games from one, it's suggested as the purchase they came from (bundleSuggestions in
-// purchases.js). date is when it went on sale; only keys activated from then on count. price is null when unknown.
-// Editing an unlinked key also lists the bundles and packs its game is in (keySourceHints in purchases.js).
+// KNOWN_BUNDLES: bundles sold as separate keys (Humble Choice months, store bundles), and free key giveaways. When two
+// or more of a visitor's unlinked key activations are games from a bundle, it's suggested as the purchase they came
+// from (bundleSuggestions in purchases.js). date is when it went on sale; only keys activated from then on count. price
+// is null when unknown. kind is 'bundle', 'sub' (a subscription month) or 'giveaway': a game given away free for a
+// while, where ends is the last day. One unlinked key of that game activated between the day before date and the day
+// after ends is enough to suggest it as a free giveaway. Editing an unlinked key also lists the bundles, giveaways and
+// packs its game is in (keySourceHints in purchases.js).
 //
 // FREE_TO_PLAY: games anyone can add for free. When one has no license of its own it's counted as free.
 
@@ -365,6 +368,12 @@ const KNOWN_BUNDLES = [
   { name: 'April 2023 Humble Choice', store: 'Humble Bundle', kind: 'sub', date: '2023-04-04', price: 11.99, games: [
     "DEATH STRANDING DIRECTOR'S CUT", 'Aliens: Fireteam Elite', 'Rollerdrome', 'Life is Strange 2 Complete Season',
     'The Life and Suffering of Sir Brante', 'Monster Prom 2: Monster Camp', 'Revita', "Founders' Fortune"] },
+  // Free key giveaways. Alienware Arena's drop was reported from July 16, 2026 and ran until keys ran out (the end
+  // date isn't known, so it runs up to AMD's). AMD Gaming's was posted August 24-25 and gone by August 28.
+  { name: 'Dwarven Realms (Alienware Arena giveaway)', store: 'Alienware Arena', kind: 'giveaway', date: '2026-07-16',
+    ends: '2026-08-23', price: 0, games: ['Dwarven Realms'] },
+  { name: 'Dwarven Realms (AMD Gaming giveaway)', store: 'AMD Gaming', kind: 'giveaway', date: '2026-08-24',
+    ends: '2026-08-28', price: 0, games: ['Dwarven Realms'] },
 ];
 
 const FREE_TO_PLAY = [

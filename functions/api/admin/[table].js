@@ -32,8 +32,11 @@ const TABLES = {
     columns: {
       name: text(200, true),
       store: text(100, false),
-      kind: value => (value === 'sub' || value === 'bundle' ? value : null),
+      kind: value => (['sub', 'bundle', 'giveaway'].includes(value) ? value : null),
       date: value => (/^\d{4}-\d{2}-\d{2}$/.test(value || '') ? value : null),
+      // a giveaway's last day; empty for bundles and subscriptions
+      ends: value => (value === null || value === '' || value === undefined ? null
+        : /^\d{4}-\d{2}-\d{2}$/.test(value) ? value : undefined),
       price: value => (value === null || value === '' || value === undefined ? null
         : Number.isFinite(+value) && +value >= 0 ? Math.round(+value * 100) / 100 : undefined),
       games: nameList,
@@ -41,7 +44,7 @@ const TABLES = {
     },
     lists: ['games'],
     label: row => row.name,
-    nullable: ['price'],
+    nullable: ['price', 'ends'],
   },
   free: {
     table: 'free_games',

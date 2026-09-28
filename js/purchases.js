@@ -186,21 +186,29 @@ function nameForms(name) {
 }
 const licenseForms = license => [license.name, license.steamName].flatMap(nameForms);
 
+// The days a key from a known bundle could have been activated: from the day before it went on sale, and for a
+// giveaway, until the day after it ended.
+const bundleWindow = bundle => [addDays(bundle.date, -1), bundle.ends ? addDays(bundle.ends, 1) : '9999'];
+const isGiveaway = bundle => bundle.kind === 'giveaway';
+// Whether a key was activated within the bundle's own dates, without the day of slack at each end. Breaks ties
+// between back-to-back giveaways of the same game.
+const withinDates = (bundle, license) => license.date >= bundle.date && (!bundle.ends || license.date <= bundle.ends);
+
 // Known bundles (KNOWN_BUNDLES in data/known-packages.js) that unlinked key activations probably came from, most
-// keys first: [{ bundle, keys }]. A key counts for a bundle when it's one of its games and was activated from the day
-// before the bundle went on sale. Each key goes to one bundle only, and a bundle needs two keys to be suggested.
+// keys first: [{ bundle, keys }]. A key counts for a bundle when it's one of its games and was activated in its window
+// (bundleWindow). Each key goes to one bundle only. A bundle needs two keys to be suggested; a giveaway, one.
 function bundleSuggestions(unlinked) {
   const candidates = KNOWN_BUNDLES.map(bundle => {
     const games = new Set(bundle.games.flatMap(nameForms));
-    const from = addDays(bundle.date, -1);
-    const keys = unlinked.filter(l => l.date >= from && licenseForms(l).some(f => games.has(f)));
-    return { bundle, keys };
-  }).sort((a, b) => b.keys.length - a.keys.length);
+    const [from, to] = bundleWindow(bundle);
+    const keys = unlinked.filter(l => l.date >= from && l.date <= to && licenseForms(l).some(f => games.has(f)));
+    return { bundle, keys, exact: keys.filter(l => withinDates(bundle, l)).length };
+  }).sort((a, b) => b.keys.length - a.keys.length || b.exact - a.exact);
   const taken = new Set();
   const suggestions = [];
   for (const { bundle, keys } of candidates) {
     const free = keys.filter(l => !taken.has(l));
-    if (free.length < 2) continue;
+    if (free.length < (isGiveaway(bundle) ? 1 : 2)) continue;
     free.forEach(l => taken.add(l));
     suggestions.push({ bundle, keys: free });
   }
@@ -208,7 +216,7 @@ function bundleSuggestions(unlinked) {
 }
 
 // Where one unlinked key may have been bought, for the purchase form:
-//  - bundles: KNOWN_BUNDLES it's a game from, on sale by the day after it was activated;
+//  - bundles: KNOWN_BUNDLES it's a game from whose window (bundleWindow) it was activated in, giveaways included;
 //  - packs: KNOWN_PACKAGES packs of 3+ games it's in. A pack normally arrives as one license, so a separate key for one
 //    of its games only points to it when the pack is a Humble Bundle or another unlinked key activated within a week
 //    is from it too (the pack was sold as separate keys);
@@ -223,8 +231,12 @@ function keySourceHints(license, unlinked) {
     return [license, ...others];
   };
   const bundles = KNOWN_BUNDLES
-    .filter(bundle => license.date >= addDays(bundle.date, -1) && hasThis(bundle.games))
-    .map(bundle => ({ ...bundle, keys: keysFrom(bundle.games, addDays(bundle.date, -1), '9999') }));
+    .filter(bundle => {
+      const [from, to] = bundleWindow(bundle);
+      return license.date >= from && license.date <= to && hasThis(bundle.games);
+    })
+    .sort((a, b) => withinDates(b, license) - withinDates(a, license))
+    .map(bundle => ({ ...bundle, keys: keysFrom(bundle.games, ...bundleWindow(bundle)) }));
   const packs = KNOWN_PACKAGES
     .filter(([names, games]) => games.length >= 3 && !names.some(n => nameForms(n).some(f => own.has(f))) && hasThis(games))
     .map(([names, games]) => ({ name: names[0], store: /humble/i.test(names.join(' ')) ? 'Humble Bundle' : '', games,

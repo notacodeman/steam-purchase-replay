@@ -29,8 +29,9 @@ export async function onRequestPost({ request, env }) {
       'INSERT INTO packages (licenses, games, note, updated_at) VALUES (?, ?, ?, ?)'
     ).bind(JSON.stringify(licenses), JSON.stringify(games), '', now)),
     ...body.bundles.map(b => env.DB.prepare(
-      'INSERT INTO bundles (name, store, kind, date, price, games, note, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?)'
-    ).bind(b.name, b.store || '', b.kind === 'sub' ? 'sub' : 'bundle', b.date, b.price ?? null, JSON.stringify(b.games), '', now)),
+      'INSERT INTO bundles (name, store, kind, date, ends, price, games, note, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)'
+    ).bind(b.name, b.store || '', ['sub', 'giveaway'].includes(b.kind) ? b.kind : 'bundle', b.date,
+      /^\d{4}-\d{2}-\d{2}$/.test(b.ends || '') ? b.ends : null, b.price ?? null, JSON.stringify(b.games), '', now)),
     ...[...new Set(body.free)].map(name => env.DB.prepare(
       'INSERT INTO free_games (name, updated_at) VALUES (?, ?)'
     ).bind(name, now)),

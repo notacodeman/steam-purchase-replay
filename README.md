@@ -54,6 +54,13 @@ changing their field names breaks reports people already have.
 line in date order and move `coveredUntil` to its last day. Purchases after `coveredUntil` are left out of the sale
 timing figures, and the page says so.
 
+## Free key giveaways
+
+Known bundles (`KNOWN_BUNDLES`, and the admin page's Bundles tab) can also be free key giveaways: kind `giveaway`, with
+`date` the first day and `ends` the last. A single unlinked key of the game activated from the day before to the day
+after is suggested as a free giveaway, so it isn't left looking like a missing purchase. The live database needs
+`functions/migrate-2026-09-giveaways.sql` run once to allow the new kind and column.
+
 ## Running it locally
 
 Open `index.html` directly, or serve the folder (for example `python -m http.server`). Download report needs the page

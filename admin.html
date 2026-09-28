@@ -167,12 +167,13 @@ const LISTS = {
   bundles: {
     noun: 'bundle',
     title: r => r.name,
-    meta: r => `${r.date} · ${r.store || 'no store'} · ${r.kind === 'sub' ? 'subscription month' : 'bundle'} · ${money(r.price)} · ${r.games.length} games: ${r.games.join(', ')}${r.note ? ' — ' + r.note : ''}`,
+    meta: r => `${r.date}${r.ends ? ' to ' + r.ends : ''} · ${r.store || 'no store'} · ${{ sub: 'subscription month', giveaway: 'free giveaway' }[r.kind] || 'bundle'} · ${money(r.price)} · ${r.games.length} games: ${r.games.join(', ')}${r.note ? ' — ' + r.note : ''}`,
     fields: [
       ['name', 'Name', 'text', 'Shown to visitors and used as the purchase name, e.g. "April 2023 Humble Choice".'],
       ['store', 'Store', 'text', ''],
       ['date', 'On sale from', 'date', 'Only keys activated from the day before this count.'],
       ['kind', 'Kind', 'kind', ''],
+      ['ends', 'Giveaway ends', 'date', 'Free giveaways only: the last day keys were handed out. Keys activated up to the day after count.'],
       ['price', 'Price (USD)', 'number', 'Leave empty if unknown.'],
       ['games', 'Games', 'list', 'Names as Steam shows them, one per line.'],
       ['note', 'Note', 'text', ''],
@@ -260,7 +261,7 @@ function openEditor(row) {
   $('#fields').innerHTML = list.fields.map(([name, label, kind, hint]) => {
     const value = row ? row[name] : kind === 'kind' ? 'sub' : '';
     const input = kind === 'list' ? `<textarea name="${name}">${esc((value || []).join('\n'))}</textarea>`
-      : kind === 'kind' ? `<select name="${name}"><option value="sub"${value === 'sub' ? ' selected' : ''}>Subscription month</option><option value="bundle"${value === 'bundle' ? ' selected' : ''}>Bundle</option></select>`
+      : kind === 'kind' ? `<select name="${name}"><option value="sub"${value === 'sub' ? ' selected' : ''}>Subscription month</option><option value="bundle"${value === 'bundle' ? ' selected' : ''}>Bundle</option><option value="giveaway"${value === 'giveaway' ? ' selected' : ''}>Free giveaway</option></select>`
       : `<input name="${name}" type="${kind === 'date' ? 'date' : kind === 'number' ? 'number' : 'text'}"${kind === 'number' ? ' step="0.01" min="0"' : ''} value="${esc(value ?? '')}">`;
     return `<label class="${kind === 'list' || kind === 'text' ? 'w' : ''}">${esc(label)}${input}${hint ? `<span class="hint">${esc(hint)}</span>` : ''}</label>`;
   }).join('');
@@ -324,7 +325,7 @@ async function exportFile() {
     const q = JSON.stringify;
     const out = header
       + 'const KNOWN_PACKAGES = [\n' + packages.rows.map(p => `  [${q(p.licenses)}, ${q(p.games)}],`).join('\n') + '\n];\n\n'
-      + 'const KNOWN_BUNDLES = [\n' + bundles.rows.map(b => `  ${q({ name: b.name, store: b.store, kind: b.kind, date: b.date, price: b.price, games: b.games })},`).join('\n') + '\n];\n\n'
+      + 'const KNOWN_BUNDLES = [\n' + bundles.rows.map(b => `  ${q({ name: b.name, store: b.store, kind: b.kind, date: b.date, ...(b.ends ? { ends: b.ends } : {}), price: b.price, games: b.games })},`).join('\n') + '\n];\n\n'
       + 'const FREE_TO_PLAY = [\n' + free.rows.map(f => `  ${q(f.name)},`).join('\n') + '\n];\n';
     const a = document.createElement('a');
     a.href = URL.createObjectURL(new Blob([out], { type: 'text/javascript' }));

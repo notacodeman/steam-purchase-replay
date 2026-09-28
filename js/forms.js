@@ -76,8 +76,11 @@ function drawKeyHints(license) {
     ? `<span class="s">Also unlinked from it: ${escapeHtml(keys.slice(1, 5).map(l => l.name).join(', ') + (keys.length > 5 ? `, +${keys.length - 5} more` : ''))}</span>`
     : '';
   const choices = [
-    ...hints.bundles.map(b => ({ fields: { type: b.kind === 'sub' ? 'sub' : 'purchase', name: b.name, store: b.store || '', total: b.price },
-      keys: b.keys, text: `<b>${escapeHtml(b.name)}</b> · ${escapeHtml(b.store || 'bundle')}${b.price != null ? ' · ' + formatMoney(b.price) : ''}, on sale from ${formatDate(b.date)}` })),
+    ...hints.bundles.map(b => isGiveaway(b)
+      ? { fields: { type: 'free', name: b.name, store: b.store || '' },
+        keys: b.keys, text: `<b>${escapeHtml(b.name)}</b> · free giveaway${b.store ? ' from ' + escapeHtml(b.store) : ''}, ${formatDate(b.date)} to ${b.ends ? formatDate(b.ends) : 'while keys lasted'}` }
+      : { fields: { type: b.kind === 'sub' ? 'sub' : 'purchase', name: b.name, store: b.store || '', total: b.price },
+        keys: b.keys, text: `<b>${escapeHtml(b.name)}</b> · ${escapeHtml(b.store || 'bundle')}${b.price != null ? ' · ' + formatMoney(b.price) : ''}, on sale from ${formatDate(b.date)}` }),
     ...hints.packs.map(p => ({ fields: { type: 'purchase', name: p.name, store: p.store },
       keys: p.keys, text: `<b>${escapeHtml(p.name)}</b>${p.store ? ' · ' + escapeHtml(p.store) : ''} · ${pluralize(p.games.length, 'game')}` })),
   ];
@@ -86,7 +89,7 @@ function drawKeyHints(license) {
     ? `<p class="kpct">Activated ${license.date <= sale.end ? 'during' : 'just after'} Steam's ${sale.type} Sale ${yearOf(sale.start)} (${formatDate(sale.start)} to ${formatDate(sale.end)}). Key stores usually run their own sales at the same time.</p>`
     : '';
   box.innerHTML = `<h4>Where this key may have come from</h4>`
-    + (choices.length ? `<p class="kpct">${escapeHtml(license.name)} is in ${choices.length === 1 ? 'a known pack or bundle' : 'these known packs and bundles'}. Check the date and price before saving.</p>`
+    + (choices.length ? `<p class="kpct">${escapeHtml(license.name)} is in ${choices.length === 1 ? 'a known pack, bundle or giveaway' : 'these known packs, bundles and giveaways'}. Check the date and price before saving.</p>`
       + `<div class="sgl">${choices.map((c, i) => `<div class="sg"><div>${c.text}${others(c.keys)}</div><button class="tbtn" type="button" data-h="${i}">Use this</button></div>`).join('')}</div>`
       : '')
     + saleText;
