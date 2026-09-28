@@ -356,7 +356,7 @@ function purchaseRowHtml(order, item, statusKey, statusLabel, qty) {
   }
   let name = escapeHtml(item.name) + (qty > 1 ? ` ×${qty}` : '');
   if (first) name += `<button class="oedit" data-edit="${order.id}" aria-label="Edit this purchase">Edit</button>`;
-  if (order.store) name += muted(' · ' + escapeHtml(order.store));
+  if (order.store) name += `<span class="kst">${escapeHtml(order.store)}</span>`;
   if (first && order.bundle && order.bundle !== item.name) {
     const price = (order.totalEst ? '≈ ' : '') + escapeHtml(formatMoney(order.total));
     const title = order.totalNote ? ` title="${escapeHtml(order.totalNote)}"` : '';
@@ -417,8 +417,10 @@ function purchaseNote({ orders, steamKeys, otherItems, total, fees, keys, gifted
   if (estimatedMonths.length) {
     const one = estimatedMonths.length === 1;
     parts.push(`${pluralize(estimatedMonths.length, 'Humble Monthly / Choice month')} (${formatMoney(sum(estimatedMonths, o => o.total))}) `
-      + `${one ? 'is' : 'are'} estimated at the monthly price back then, marked ≈: $12 from Humble Monthly through June 2025 `
-      + '(the Classic plan kept that price after Humble Choice replaced Monthly), and $14.99 from July 2025. '
+      + `${one ? 'is' : 'are'} estimated at the US monthly price back then, marked ≈: $12 for Humble Monthly (October 2015 to `
+      + 'November 2019), and the same $12 on the Classic plan that Monthly subscribers could keep when Humble Choice replaced '
+      + 'it (Choice itself was $4.99 / $14.99 / $19.99 by tier until January 2022, then one $11.99 plan), then $14.99 '
+      + 'from July 2025, when Choice went up about 25% for every plan. Estimates leave out sales tax. '
       + "Each month's price is split across the keys activated the day it was bought (or the day after). "
       + "Only the months you actually bought are counted. Humble's order page doesn't show the charge itself, so promo codes or an annual plan would make the real amount lower.");
   }
@@ -452,21 +454,25 @@ function renderSuggestions(licenses) {
   }
   const names = keys => escapeHtml(keys.slice(0, 4).map(l => l.name).join(', ') + (keys.length > 4 ? `, +${keys.length - 4} more` : ''));
   const bundleCards = bundles.map(({ bundle, keys }, i) => `<div class="sg">
-      <div><b>${escapeHtml(bundle.name)}</b> · ${pluralize(keys.length, 'key')}<span class="s">${names(keys)}</span></div>
-      <button class="tbtn sgb" data-b="${i}">Add this purchase</button>
+      <div><b>${escapeHtml(bundle.name)}</b> · ${isGiveaway(bundle)
+        ? `free giveaway, ${formatDate(bundle.date)} to ${bundle.ends ? formatDate(bundle.ends) : 'while keys lasted'}`
+        : pluralize(keys.length, 'key')}<span class="s">${names(keys)}</span></div>
+      <button class="tbtn sgb" data-b="${i}">${isGiveaway(bundle) ? 'Mark as free' : 'Add this purchase'}</button>
     </div>`);
   const dayCards = batches.map(([date, day]) => `<div class="sg">
       <div><b>${formatDate(date)}</b> · ${pluralize(day.length, 'key')}<span class="s">${names(day)}</span></div>
       <button class="tbtn sgb" data-d="${date}">Add this purchase</button>
     </div>`);
   box.innerHTML = heading
-    + (bundleCards.length ? '<p class="kpct">These keys are games from bundles we know. Add the purchase and they\'ll be linked; check the date and price.</p>' + `<div class="sgl">${bundleCards.join('')}</div>` : '')
+    + (bundleCards.length ? '<p class="kpct">These keys are games from bundles or free giveaways we know about, activated while they ran. Add the purchase and they\'ll be linked; check the date and price.</p>' + `<div class="sgl">${bundleCards.join('')}</div>` : '')
     + (dayCards.length ? '<p class="kpct">Keys activated together usually came from one bundle. Add the purchase and they\'ll be linked.</p>' + `<div class="sgl">${dayCards.join('')}</div>` : '');
   box.querySelectorAll('.sgb[data-b]').forEach(button => button.onclick = () => {
     const { bundle, keys } = bundles[+button.dataset.b];
     openPurchaseForm({
-      type: bundle.kind === 'sub' ? 'sub' : 'purchase', date: keys.reduce((a, l) => (l.date < a ? l.date : a), keys[0].date),
-      name: bundle.name, store: bundle.store || '', total: bundle.price ?? undefined, keys: keys.map(l => [l.date, l.steamName]),
+      type: isGiveaway(bundle) ? 'free' : bundle.kind === 'sub' ? 'sub' : 'purchase',
+      date: keys.reduce((a, l) => (l.date < a ? l.date : a), keys[0].date),
+      name: bundle.name, store: bundle.store || '', total: isGiveaway(bundle) ? undefined : bundle.price ?? undefined,
+      keys: keys.map(l => [l.date, l.steamName]),
     });
   });
   box.querySelectorAll('.sgb[data-d]').forEach(button => button.onclick = () => openPurchaseForm({ date: button.dataset.d, type: 'purchase' }));
