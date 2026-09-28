@@ -155,7 +155,14 @@ async function downloadReport() {
   if (hideNames) {
     const aliases = friendAliases(report.history);
     historyRows = historyRows.map(r => ({ ...r, items: r.items.map(i => i.to ? { ...i, to: aliases.get(i.to) || 'Friend' } : i) }));
-    keyPurchases = keyPurchases && { orders: keyPurchases.orders.map(({ giftNote, ...order }) => order) };
+    const alias = to => to && aliases.get(to);
+    keyPurchases = keyPurchases && {
+      orders: keyPurchases.orders.map(({ giftNote, ...order }) => ({
+        ...order,
+        items: order.items.map(i => i.to ? { ...i, to: alias(i.to) } : i),
+        ...(order.form && { form: { ...order.form, giftedTo: alias(order.form.giftedTo) || '' } }),
+      })),
+    };
     name = null;
   }
   const gamesPage = report.gamesPage && {

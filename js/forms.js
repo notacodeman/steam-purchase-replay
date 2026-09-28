@@ -53,7 +53,7 @@ function openPurchaseForm(fields = {}) {
   $('#buyCurLbl').value = currency.symbol;
   $('#buyCurLbl2').textContent = currency.symbol;
   const values = { ...fields, type: fields.type || 'purchase', currency: fields.currency || currency.symbol, gifted: fields.gifted || 0 };
-  for (const name of ['type', 'store', 'date', 'name', 'total', 'currency', 'converted', 'gifted', 'platform']) {
+  for (const name of ['type', 'store', 'date', 'name', 'total', 'currency', 'converted', 'gifted', 'giftedTo', 'platform']) {
     if (values[name] != null) form.elements[name].value = values[name];
   }
   purchaseForm.picked = new Set((fields.keys || []).map(([date, name]) => date + '|' + name));
@@ -213,7 +213,8 @@ function readPurchaseForm() {
     errors,
     fields: {
       id: purchaseForm.editing, type: fields.type.value, date, name, store: fields.store.value.trim(), total,
-      currency: fields.currency.value, converted, gifted, platform: fields.platform.value.trim(), keys,
+      currency: fields.currency.value, converted, gifted, giftedTo: fields.giftedTo.value.trim(), platform: fields.platform.value.trim(),
+      keys,
     },
   };
 }

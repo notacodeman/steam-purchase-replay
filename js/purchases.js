@@ -4,7 +4,7 @@
 // Stored as { orders: [...] }. An order:
 //   { id, date, store, bundle, total, fee, feeUnknown, priceUnknown, foreign, converted, subscription,
 //     giftReceived, freeGiveaway, notSteam, items: [...], form }
-// An item: { name, paid, item, lic: [activation date, license name], status, qty, est }
+// An item: { name, paid, item, lic: [activation date, license name], status, qty, est, to (who a gifted key went to) }
 // `form` keeps what was typed into the purchase form so it can be edited later. Orders imported by older versions
 // can carry a few more notes (dateEst, totalEst, totalNote, bundleGames, giftNote, subEst, refunded…).
 
@@ -18,7 +18,7 @@ const PURCHASE_STATUS = {
   nomatch: ['Not matched to a license', 'st'],
   notsteam: ['Not a Steam key', 'st'],
   found: ['On your account', 'ok'],
-  gifted: ['Gifted', 'st'],
+  gifted: ['Gifted', 'given'],
   second: ['Extra copy (only one activated)', 'st'],
   missing: ['Not found on your account', 'warn'],
   refunded: ['Refunded', 'st'],
@@ -35,7 +35,7 @@ function splitEven(total, n) {
 }
 
 // Builds a stored order from what was entered in the purchase form or a spreadsheet row.
-// fields: { id, type, date, name, store, total, currency, converted, gifted, platform, keys: [{ lic, name }] }
+// fields: { id, type, date, name, store, total, currency, converted, gifted, giftedTo, platform, keys: [{ lic, name }] }
 function makeOrder(fields) {
   const { type } = fields;
   const order = { id: fields.id || newId(), user: true, date: fields.date, store: fields.store || '3rd-party store', fee: 0, feeUnknown: true };
@@ -72,6 +72,7 @@ function makeOrder(fields) {
   if (gifted) {
     order.items.push({
       name: fields.name || 'Gifted copies', item: null, paid: priced(round2(sum(shares.slice(keys.length)))), lic: null, status: 'gifted', qty: gifted, est,
+      ...(fields.giftedTo ? { to: fields.giftedTo } : {}),
     });
   }
   if (!order.items.length) {
@@ -93,6 +94,7 @@ function orderFormFields(order) {
     total: order.priceUnknown ? null : order.total,
     currency: currency.symbol,
     gifted: sum(order.items.filter(i => i.status === 'gifted'), i => i.qty || 1),
+    giftedTo: order.items.find(i => i.to)?.to || '',
     platform: order.notSteam || '',
     keys: order.items.filter(i => i.lic).map(i => i.lic),
   };
@@ -164,7 +166,7 @@ function giftedKeys(keyPurchases, licenses, gamesPage) {
     for (const item of order.items) {
       const s = status(item, order);
       const qty = item.qty || 1;
-      if (s === 'gifted') result.push({ name: item.name, qty, date: order.date, paid: item.paid || 0 });
+      if (s === 'gifted') result.push({ name: item.name, qty, date: order.date, paid: item.paid || 0, to: item.to || null });
       else if (s === 'found' && qty > 1) result.push({ name: item.name, qty: qty - 1, date: order.date, paid: item.paid * (qty - 1) / qty });
     }
   }

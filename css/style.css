@@ -1780,6 +1780,11 @@ kbd {
   color: #9fd3e8;
 }
 
+/* a key that went to someone else, in the 3rd-party key colour of the gifts chart */
+.tr.kpr .st.given {
+  color: #e8b64a;
+}
+
 .tr.kpr .st.warn {
   color: #e8b64a;
 }

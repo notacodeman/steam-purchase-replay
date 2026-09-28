@@ -86,7 +86,11 @@ function priceBadge(original, paid) {
 
 // Friends' names replaced by "Friend 1", "Friend 2"… when names are hidden.
 function friendAliases(history) {
-  return new Map(history.topRecipients.map(([name], i) => [name, `Friend ${i + 1}`]));
+  const names = history.topRecipients.map(([name]) => name);
+  for (const order of ordersOf(report.keyPurchases)) {
+    for (const item of order.items) if (item.to && !names.includes(item.to)) names.push(item.to);
+  }
+  return new Map(names.map((name, i) => [name, `Friend ${i + 1}`]));
 }
 
 // ---------- header, hero and tiles ----------
@@ -297,11 +301,18 @@ function renderGifts(history, licenses) {
   $('#gLegend').innerHTML = `<span><i style="background:${COLORS.gift}"></i>Steam gift</span>${keyCount ? `<span><i style="background:${COLORS.key}"></i>3rd-party key</span>` : ''}<span><i style="background:${refundedFill}"></i>Refunded</span>`;
   const lists = [{ selector: '#gGames', items: games, row: gameRow }];
 
-  const friends = history.topRecipients;
+  // who received them: Steam gifts, plus 3rd-party keys whose recipient was entered
+  const received = new Map(history.topRecipients.map(([name, n]) => [name, { name, s: n, k: 0 }]));
+  keys.filter(k => k.to).forEach(k => {
+    if (!received.has(k.to)) received.set(k.to, { name: k.to, s: 0, k: 0 });
+    received.get(k.to).k += k.qty;
+  });
+  const friends = [...received.values()].sort((a, b) => b.s + b.k - a.s - a.k || a.name.localeCompare(b.name));
   if (friends.length) {
     const aliases = friendAliases(history);
-    const mostReceived = friends[0][1];
-    const friendRow = ([name, n]) => `<div class="bar"><span>${escapeHtml(hideNames ? aliases.get(name) : name)}</span><div class="trk"><div class="fl" style="width:${(n / mostReceived * 100).toFixed(1)}%;background:${COLORS.steam}"></div></div><span class="v">${n}</span></div>`;
+    const mostReceived = friends[0].s + friends[0].k;
+    const part = (n, color) => n ? `<div class="fl" style="width:${(n / mostReceived * 100).toFixed(1)}%;background:${color}"></div>` : '';
+    const friendRow = f => `<div class="bar"><span>${escapeHtml(hideNames ? aliases.get(f.name) : f.name)}</span><div class="trk">${part(f.s, COLORS.steam)}${part(f.k, COLORS.key)}</div><span class="v">${f.s + f.k}</span></div>`;
     lists.push({ selector: '#gFriends', items: friends, row: friendRow });
   } else {
     $('#gFriends').innerHTML = '<p class="vempty">Steam didn\'t list who received these gifts.</p>';

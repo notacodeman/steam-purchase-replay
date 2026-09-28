@@ -324,6 +324,7 @@ function renderKeyPurchases(keyPurchases, licenses) {
       const qty = item.qty || 1;
       let label = (PURCHASE_STATUS[key] || PURCHASE_STATUS.found)[0];
       if (key === 'found' && qty > 1) label = `On your account + ${qty - 1} gifted`;
+      if (key === 'gifted' && item.to) label = `Gifted to ${escapeHtml(item.to)}`;
       if (key === 'notsteam') {
         label = /^(Software|Audio|Books|Comics)$/.test(order.notSteam)
           ? `Not a game (${order.notSteam.toLowerCase()})${item.lic ? ', on your account' : ''}`
