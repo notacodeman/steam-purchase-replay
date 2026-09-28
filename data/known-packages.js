@@ -313,6 +313,22 @@ const KNOWN_PACKAGES = [
 ];
 
 const KNOWN_BUNDLES = [
+  { name: 'Humble Yogscast Jingle Jam 2017', store: 'Humble Bundle', kind: 'bundle', date: '2017-12-01', price: 35, games: [
+    'All-Star Fruit Racing - Yogscast Exclusive DLC', 'Ancient Planet Tower Defense', 'Auto Age: Standoff',
+    'Back to Bed', 'Battle Riders', 'Battlerite DLC: YogYog Bear Mount', 'Bezier', 'Blockstorm', 'Bomb Defense',
+    'Caveblazers - Arena Mode', 'Chainsaw Warrior', 'Chime Sharp', 'Chivalry: Medieval Warfare', 'Chronology',
+    'Cities: Skylines - Snowfall', 'ClusterPuck 99', 'Cosmonautica', 'Crusaders of the Lost Idols: Elite Starter Pack',
+    'Deep Dungeons of Doom', 'Defend Your Life: TD', 'Dimension Jump', 'Distrust: Polar Survival', 'Dreaming Sarah',
+    'Dungeon of the Endless', 'F.E.X (Forced Evolution Experiment)', 'Figment - Soundtrack', 'Filthy, Stinking, Orcs!',
+    'FreeCell Quest', 'Gangs of Space', "Garry's Mod", 'Guild Wars 2: Heroic Edition', 'Gunpoint',
+    'Guns of Icarus Alliance', 'Gurgamoth', 'Headlander', 'Idle Champions - Celeste Starter Pack',
+    'Intelligent Design: An Evolutionary Sandbox', 'Lion Quest', 'LostWinds', 'Master Spy', 'Mimic Arena',
+    'Mirage: Arcane Warfare', 'NASCAR Heat 2 - October Jumbo Expansion', 'Offensive Combat: Redux!', 'On Rusty Trails',
+    'Painters Guild', 'Psychonauts', "Q.U.B.E: Director's Cut", 'ReThink', 'Robocraft - Exclusive Jingle Jam Pack',
+    'Rust', 'Sanctum 2', 'Scanner Sombre', 'Scrap Garden', 'Spectrum', 'SuperLuminauts',
+    'Tales from Candlekeep: Tomb of Annihilation', 'Team Racing League', 'Teslagrad', 'The Fall', 'The Inner World',
+    'Tiltagon', 'Toy Odyssey: The Lost and Found', 'Train Valley', 'War for the Overworld - Yogscast Worker Skin',
+    'Warhammer: End Times - Vermintide: Dwarf Helmet', 'Wasted Pizza', 'Zero Reflex: Black Eye Edition'] },
   { name: 'September 2018 Humble Monthly', store: 'Humble Bundle', kind: 'sub', date: '2018-08-31', price: 12, games: [
     'Rise of the Tomb Raider', 'Sniper Elite 4', 'Tales of Berseria', 'Staxel', 'Little Nightmares',
     'Darksiders II Deathinitive Edition', 'Battle Chef Brigade', 'Zombie Night Terror', 'Figment', 'Ethereal'] },
@@ -325,6 +341,13 @@ const KNOWN_BUNDLES = [
     'Do Not Feed the Monkeys', 'I am not a Monster', 'Once Upon a Crime in the West'] },
   { name: 'September 2019 Humble Monthly', store: 'Humble Bundle', kind: 'sub', date: '2019-08-30', price: 12, games: [
     'Squad', 'Slay the Spire', 'Distance', 'Guacamelee! 2', 'MOTHERGUNSHIP', 'State of Mind', "God's Trigger"] },
+  { name: 'December 2019 Humble Choice', store: 'Humble Bundle', kind: 'sub', date: '2019-12-01', price: null, games: [
+    'Aegis Defenders', 'Ancestors Legacy', 'Blasphemous', 'Dark Future: Blood Red States', 'Dead In Vinland',
+    'Desert Child', 'Horizon Chase Turbo', 'Phantom Doctrine', 'Shadow of the Tomb Raider', 'X-Morph: Defense'] },
+  { name: 'May 2020 Humble Choice', store: 'Humble Bundle', kind: 'sub', date: '2020-05-01', price: null, games: [
+    'Jurassic World Evolution', 'XCOM 2', 'Rise of Industry', 'Niche - a genetics survival game',
+    'Warhammer 40,000: Gladius - Relics of War', 'The Swords of Ditto', 'WARSAW', 'Heave Ho', 'MO:Astray', 'NEOVERSE',
+    'Chess Ultra', 'Horace'] },
   { name: 'July 2020 Humble Choice', store: 'Humble Bundle', kind: 'sub', date: '2020-07-03', price: null, games: [
     'Age of Wonders: Planetfall Deluxe Edition', 'Void Bastards', 'Railway Empire', 'Sigma Theory: Global Cold War',
     'Beat Hazard 2', 'Verlet Swing', 'Earthlock', 'Basingstoke', "Don't Escape: 4 Days to Survive",
