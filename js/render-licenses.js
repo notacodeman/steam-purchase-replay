@@ -82,7 +82,9 @@ function licenseNotes(licenses) {
 
 // ---------- every license on your account ----------
 
-const PAGE_SIZE = 25;
+// how many rows each list shows before it scrolls
+const LICENSE_ROWS_SHOWN = 25;
+const PURCHASE_ROWS_SHOWN = 15;
 
 function renderLicenseTable(licenses) {
   const list = licenses.list;
@@ -141,8 +143,6 @@ function renderLicenseTable(licenses) {
   $('#kq').value = '';
   $('#ks').value = '';
 
-  let limit = PAGE_SIZE;
-  let matching = 0;
   const draw = () => {
     const query = $('#kq').value.trim().toLowerCase();
     const year = $('#ky').value;
@@ -162,27 +162,18 @@ function renderLicenseTable(licenses) {
           || (purchased.has(index) && purchased.get(index).name.toLowerCase().includes(query)));
     const inYear = ({ license }) => !year || (license && license.date.startsWith(year));
     const rows = entries.filter(entry => inYear(entry) && matchesSource(entry) && matchesQuery(entry));
-    matching = rows.length;
     $('#krows').innerHTML = rows.length
-      ? rows.slice(0, limit).map(({ license, index, game }) => game
+      ? rows.map(({ license, index, game }) => game
         ? unmatchedGameRowHtml(game)
         : licenseRowHtml(license, index, licensePriceHtml(license, index, prices, purchased), purchased.get(index), isUnaccounted(license, index), missingOf(license, index))).join('')
       : '<div class="kempty">Nothing matches. Try a shorter search or pick All years.</div>';
     $('#kcnt').textContent = `${rows.length.toLocaleString()} of ${entries.length.toLocaleString()}`;
-    $('#kmore').hidden = rows.length <= PAGE_SIZE;
-    $('#kmore').textContent = limit >= rows.length ? 'Show fewer' : `Show ${Math.min(100, rows.length - limit)} more`;
+    $('#krows').scrollTop = 0;
+    scrollAfterRows([$('#krows')], '#keys', LICENSE_ROWS_SHOWN);
   };
-  const redraw = () => {
-    limit = PAGE_SIZE;
-    draw();
-  };
-  $('#kq').oninput = redraw;
-  $('#ks').onchange = redraw;
-  $('#ky').onchange = redraw;
-  $('#kmore').onclick = () => {
-    limit = limit >= matching ? PAGE_SIZE : limit + 100;
-    draw();
-  };
+  $('#kq').oninput = draw;
+  $('#ks').onchange = draw;
+  $('#ky').onchange = draw;
   draw();
 }
 
@@ -281,10 +272,7 @@ function renderKeyPurchases(keyPurchases, licenses) {
   $('#kpSum').hidden = !any;
   $('#kpPanel .tbl').hidden = !any;
   renderSuggestions(licenses);
-  if (!any) {
-    $('#kpMore').hidden = true;
-    return;
-  }
+  if (!any) return;
   orders.forEach(order => order.id = order.id || newId());
 
   // newest first, so a purchase you just added is at the top; orders with no known date go last
@@ -333,19 +321,9 @@ function renderKeyPurchases(keyPurchases, licenses) {
       rows.push(purchaseRowHtml(order, item, key, label, qty));
     }
   }
-  const totalRow = `<div class="tr kpr ord" role="row"><div role="cell"></div><div role="cell"><b>Total</b></div><div class="pr" role="cell"><b>${escapeHtml(formatMoney(total))}</b></div><div role="cell"></div></div>`;
-  let showAll = false;
-  const draw = () => {
-    const allShown = showAll || rows.length <= 20;
-    $('#kpRows').innerHTML = (allShown ? rows : rows.slice(0, 20)).join('') + (allShown ? totalRow : '');
-    $('#kpMore').hidden = rows.length <= 20;
-    $('#kpMore').textContent = showAll ? 'Show first 20 only' : `Show all ${rows.length}`;
-  };
-  $('#kpMore').onclick = () => {
-    showAll = !showAll;
-    draw();
-  };
-  draw();
+  $('#kpRows').innerHTML = rows.join('');
+  $('#kpTotal').innerHTML = `<div class="tr kpr ord" role="row"><div role="cell"></div><div role="cell"><b>Total</b></div><div class="pr" role="cell"><b>${escapeHtml(formatMoney(total))}</b></div><div role="cell"></div></div>`;
+  scrollAfterRows([$('#kpRows')], '#kpPanel', PURCHASE_ROWS_SHOWN);
 }
 
 function purchaseRowHtml(order, item, statusKey, statusLabel, qty) {

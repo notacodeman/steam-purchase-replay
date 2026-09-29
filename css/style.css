@@ -2634,11 +2634,22 @@ details.method>summary:hover .plus {
   font-weight: 400;
 }
 
-.bars.scrolls {
+/* lists capped by scrollAfterRows() */
+.scrolls {
   overflow-y: auto;
-  padding-right: 6px;
   scrollbar-width: thin;
   scrollbar-color: rgba(102,192,244,.35) transparent;
+}
+
+.bars.scrolls {
+  padding-right: 6px;
+}
+
+/* when a table's rows scroll, the header keeps a scrollbar-sized gap so its columns stay over theirs */
+.tbl:has(.scrolls) .tr.th {
+  overflow-y: hidden;
+  scrollbar-gutter: stable;
+  scrollbar-width: thin;
 }
 
 .savedline {

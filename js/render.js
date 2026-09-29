@@ -330,10 +330,15 @@ function renderGifts(history, licenses) {
 // Side-by-side lists that show every row but scroll after about `limit` rows. Next to each other they're cut at the
 // same line: the lowest point any of them reaches after its first `limit` rows. Stacked (narrow screens), each is
 // cut after its own rows. Half of the next row peeks out, so it's clear the list scrolls.
-let listResizeObserver = null;
 function scrollableLists(lists, containerSelector, limit) {
   lists.forEach(({ selector, items, row }) => $(selector).innerHTML = items.map(row).join(''));
-  const boxes = lists.map(({ selector }) => $(selector));
+  scrollAfterRows(lists.map(({ selector }) => $(selector)), containerSelector, limit);
+}
+
+// Caps already-filled boxes at about `limit` rows (and at most 80% of the window's height) and lets them scroll.
+// Call again after refilling a box. One observer per container re-fits its boxes when the page width changes.
+const listObservers = new Map();
+function scrollAfterRows(boxes, containerSelector, limit) {
   const fit = () => {
     if (boxes.some(box => !box.clientWidth)) return; // hidden; the observer calls again once it has a size
     boxes.forEach(box => {
@@ -349,23 +354,24 @@ function scrollableLists(lists, containerSelector, limit) {
     const panelTop = box => (box.closest('.panel') || box).getBoundingClientRect().top;
     const sideBySide = boxes.every(box => Math.abs(panelTop(box) - panelTop(boxes[0])) < 2);
     boxes.forEach((box, i) => {
-      const height = (sideBySide ? Math.max(...cutAt) : cutAt[i]) - box.getBoundingClientRect().top;
+      const height = Math.min((sideBySide ? Math.max(...cutAt) : cutAt[i]) - box.getBoundingClientRect().top, innerHeight * 0.8);
       if (box.scrollHeight > height + 1) {
         box.style.maxHeight = height + 'px';
         box.classList.add('scrolls');
       }
     });
   };
-  if (listResizeObserver) listResizeObserver.disconnect();
+  if (listObservers.has(containerSelector)) listObservers.get(containerSelector).disconnect();
   // only width changes re-flow the rows; the height changes fit() itself causes are ignored
   let lastWidth = -1;
-  listResizeObserver = new ResizeObserver(entries => {
+  const observer = new ResizeObserver(entries => {
     const width = Math.round(entries[0].contentRect.width);
     if (width === lastWidth) return;
     lastWidth = width;
     fit();
   });
-  listResizeObserver.observe($(containerSelector));
+  observer.observe($(containerSelector));
+  listObservers.set(containerSelector, observer);
 }
 
 // ---------- sale savings ----------
