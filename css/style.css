@@ -1047,19 +1047,13 @@ html {
   }
 }
 
-/* while a report is open, scrolling that stops near the start of a section settles on it ("proximity", so a
-   long section can still be read part-way down). Licenses and keys and Games and playtime are much taller than
-   the screen, so their big panels are snap points too. */
+/* while a report is open, scrolling that stops near a section's header settles on it ("proximity", so a long
+   section can still be read part-way down) */
 html:has(#report:not([hidden])) {
   scroll-snap-type: y proximity;
 }
 
-#overview,
-#report > section,
-#play > .grid2,
-#play > .panel,
-#keys > .grid2,
-#keys > .panel {
+#report > section {
   scroll-snap-align: start;
 }
 
