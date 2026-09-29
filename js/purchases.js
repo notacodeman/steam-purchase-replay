@@ -3,8 +3,9 @@
 //
 // Stored as { orders: [...] }. An order:
 //   { id, date, store, bundle, total, fee, feeUnknown, priceUnknown, foreign, converted, subscription,
-//     giftReceived, freeGiveaway, notSteam, items: [...], form }
-// An item: { name, paid, item, lic: [activation date, license name], status, qty, est, to (who a gifted key went to) }
+//     giftReceived, freeGiveaway, notSteam, forGame, items: [...], form }
+// An item: { name, paid, item, lic: [activation date, license name], status, qty, est, to (who a gifted key went to),
+//   forGame (the game money spent outside Steam went on, like a Trackmania Club Access subscription) }
 // `form` keeps what was typed into the purchase form so it can be edited later. Orders imported by older versions
 // can carry a few more notes (dateEst, totalEst, totalNote, bundleGames, giftNote, subEst, refunded…).
 
@@ -21,6 +22,7 @@ const PURCHASE_STATUS = {
   gifted: ['Gifted', 'given'],
   second: ['Extra copy (only one activated)', 'st'],
   missing: ['Not found on your account', 'warn'],
+  forgame: ['Counted towards the game', 'ok'],
   refunded: ['Refunded', 'st'],
 };
 
@@ -35,7 +37,7 @@ function splitEven(total, n) {
 }
 
 // Builds a stored order from what was entered in the purchase form or a spreadsheet row.
-// fields: { id, type, date, name, store, total, currency, converted, gifted, giftedTo, platform, keys: [{ lic, name }] }
+// fields: { id, type, date, name, game, store, total, currency, converted, gifted, giftedTo, platform, keys: [{ lic, name }] }
 function makeOrder(fields) {
   const { type } = fields;
   const order = { id: fields.id || newId(), user: true, date: fields.date, store: fields.store || '3rd-party store', fee: 0, feeUnknown: true };
@@ -62,6 +64,7 @@ function makeOrder(fields) {
   if (type === 'gift' || type === 'free') order.giftReceived = true;
   if (type === 'free') order.freeGiveaway = true;
   if (type === 'nonsteam') order.notSteam = fields.platform || 'Other platform';
+  if (type === 'forgame') order.forGame = fields.game;
 
   const shares = order.priceUnknown ? [] : splitEven(order.total, keys.length + gifted);
   const est = keys.length + gifted > 1;
@@ -75,7 +78,9 @@ function makeOrder(fields) {
       ...(fields.giftedTo ? { to: fields.giftedTo } : {}),
     });
   }
-  if (!order.items.length) {
+  if (type === 'forgame') {
+    order.items.push({ name: fields.name || 'Purchase', item: null, paid: priced(order.total), lic: null, status: 'forgame', forGame: fields.game });
+  } else if (!order.items.length) {
     const status = type === 'sub' ? 'sub' : type === 'nonsteam' ? 'notsteam' : 'nomatch';
     order.items.push({ name: fields.name || 'Purchase', item: null, paid: priced(order.total), lic: null, status });
   }
@@ -87,7 +92,8 @@ function makeOrder(fields) {
 function orderFormFields(order) {
   if (order.form) return order.form;
   return {
-    type: order.subscription ? 'sub' : order.freeGiveaway ? 'free' : order.giftReceived ? 'gift' : order.notSteam ? 'nonsteam' : 'purchase',
+    type: order.subscription ? 'sub' : order.freeGiveaway ? 'free' : order.giftReceived ? 'gift' : order.notSteam ? 'nonsteam' : order.forGame ? 'forgame' : 'purchase',
+    game: order.forGame || '',
     date: order.date,
     name: order.bundle || order.items[0]?.name,
     store: order.store,
@@ -146,7 +152,7 @@ function keyStatusChecker(licenses, gamesPage) {
   return (item, order) => {
     if (order.giftReceived) return order.freeGiveaway ? 'giveaway' : 'giftin';
     if (order.notSteam || item.status === 'notsteam') return 'notsteam';
-    if (['traded', 'sub', 'nomatch', 'refunded'].includes(item.status)) return item.status;
+    if (['traded', 'sub', 'nomatch', 'refunded', 'forgame'].includes(item.status)) return item.status;
     if (item.lic) return 'found';
     if (item.status === 'missing') {
       if (ownedBefore(item.name, order.date)) return 'gifted';

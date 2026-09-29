@@ -53,7 +53,7 @@ function openPurchaseForm(fields = {}) {
   $('#buyCurLbl').value = currency.symbol;
   $('#buyCurLbl2').textContent = currency.symbol;
   const values = { ...fields, type: fields.type || 'purchase', currency: fields.currency || currency.symbol, gifted: fields.gifted || 0 };
-  for (const name of ['type', 'store', 'date', 'name', 'total', 'currency', 'converted', 'gifted', 'giftedTo', 'platform']) {
+  for (const name of ['type', 'store', 'date', 'name', 'game', 'total', 'currency', 'converted', 'gifted', 'giftedTo', 'platform']) {
     if (values[name] != null) form.elements[name].value = values[name];
   }
   purchaseForm.picked = new Set((fields.keys || []).map(([date, name]) => date + '|' + name));
@@ -127,6 +127,19 @@ function updatePurchaseForm() {
   $('#buyConv').hidden = !chosenCurrency || chosenCurrency === currency.symbol;
   $('#buyPlat').hidden = type !== 'nonsteam';
   $('#buyPrice').hidden = type === 'gift' || type === 'free';
+  // spending on a game outside Steam has no keys or copies, just the game it was for
+  const forGame = type === 'forgame';
+  $('#buyGame').hidden = !forGame;
+  $('#buyGameNote').hidden = !forGame;
+  $('#buyKeysBox').hidden = forGame;
+  $$('#buyForm .gifting').forEach(label => label.hidden = forGame);
+  $('#buyNameLbl').textContent = forGame ? 'What you bought' : 'Game or bundle name';
+  form.elements.name.placeholder = forGame ? 'e.g. Club Access, 1 year' : 'e.g. Humble Indie Bundle 12';
+  if (forGame && !$('#gameList').options.length) {
+    const names = report.gamesPage ? report.gamesPage.games.map(g => g.name) : (report.licenses ? report.licenses.list.map(l => l.name) : []);
+    $('#gameList').innerHTML = [...new Set(names)].sort().map(n => `<option value="${escapeHtml(n)}">`).join('');
+  }
+  if (forGame) return;
   const date = form.elements.date.value;
   const box = $('#buyKeys');
   if (!report.licenses) {
@@ -200,22 +213,25 @@ function readPurchaseForm() {
   const name = fields.name.value.trim();
   const total = readAmount(fields.total.value);
   const converted = readAmount(fields.converted.value);
-  const gifted = +fields.gifted.value || 0;
+  const forGame = fields.type.value === 'forgame';
+  const game = forGame ? fields.game.value.trim() : '';
+  const gifted = forGame ? 0 : +fields.gifted.value || 0;
   if (!date) errors.push('Enter the date you bought it.');
+  if (forGame && !game) errors.push('Enter the game this was for.');
   if (Number.isNaN(total)) errors.push('The price must be a number, like 12.99.');
   if (Number.isNaN(converted)) errors.push('The amount charged must be a number.');
   if (gifted < 0 || gifted > 999 || !Number.isInteger(gifted)) errors.push('Copies given away must be a whole number.');
-  const keys = [...purchaseForm.picked].map(id => {
+  const keys = forGame ? [] : [...purchaseForm.picked].map(id => {
     const [keyDate, ...rest] = id.split('|');
     const keyName = rest.join('|');
     const license = report.licenses ? report.licenses.list.find(l => l.date === keyDate && l.steamName === keyName) : null;
     return { lic: [keyDate, keyName], name: license ? license.name : keyName };
   });
-  if (!name && !keys.length) errors.push('Give it a name or tick at least one key.');
+  if (!forGame && !name && !keys.length) errors.push('Give it a name or tick at least one key.');
   return {
     errors,
     fields: {
-      id: purchaseForm.editing, type: fields.type.value, date, name, store: fields.store.value.trim(), total,
+      id: purchaseForm.editing, type: fields.type.value, date, name, game, store: fields.store.value.trim(), total,
       currency: fields.currency.value, converted, gifted, giftedTo: fields.giftedTo.value.trim(), platform: fields.platform.value.trim(),
       keys,
     },
@@ -281,7 +297,7 @@ function editLicense(index) {
   }
   const type = license.source === 'free' ? 'free' : license.source === 'gift' ? 'gift' : 'purchase';
   openPurchaseForm({
-    type, date: license.date || '', name: license.name, keys: [[license.date, license.steamName]],
+    type, date: license.date || '', name: license.name, game: license.name, keys: [[license.date, license.steamName]],
     hintFor: license.source === 'key' ? license : null,
   });
 }

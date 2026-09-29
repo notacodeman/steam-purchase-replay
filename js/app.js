@@ -277,7 +277,7 @@ function buildFromUploads() {
 
 const RAIL_SECTIONS = [
   ['overview', 'Overview'], ['year', 'Year by year'], ['bought', 'What it bought'], ['sale', 'Sale savings'],
-  ['top50', 'Top purchases'], ['play', 'Games & playtime'], ['months', 'When you buy'], ['hardware', 'Hardware'],
+  ['top', 'Top purchases'], ['play', 'Games & playtime'], ['months', 'When you buy'], ['hardware', 'Hardware'],
   ['gifts', 'Gifts'], ['keys', 'Licenses & keys'], ['method', 'Methodology'],
 ];
 const rail = { links: [], sections: [] };

@@ -282,7 +282,7 @@ function renderKeyPurchases(keyPurchases, licenses) {
   const otherItems = bought.filter(o => o.notSteam); // other platforms and non-game bundles, listed only
   const status = keyStatusChecker(licenses, report.gamesPage);
   const total = sum(steamKeys, o => o.total);
-  const uncounted = ['refunded', 'sub', 'nomatch'];
+  const uncounted = ['refunded', 'sub', 'nomatch', 'forgame']; // not keys
   const [summary, ...details] = purchaseNote({
     orders,
     steamKeys,
@@ -313,6 +313,7 @@ function renderKeyPurchases(keyPurchases, licenses) {
       let label = (PURCHASE_STATUS[key] || PURCHASE_STATUS.found)[0];
       if (key === 'found' && qty > 1) label = `On your account + ${qty - 1} gifted`;
       if (key === 'gifted' && item.to) label = `Gifted to ${escapeHtml(item.to)}`;
+      if (key === 'forgame') label = `Counted towards ${escapeHtml(item.forGame)}`;
       if (key === 'notsteam') {
         label = /^(Software|Audio|Books|Comics)$/.test(order.notSteam)
           ? `Not a game (${order.notSteam.toLowerCase()})${item.lic ? ', on your account' : ''}`
@@ -322,7 +323,7 @@ function renderKeyPurchases(keyPurchases, licenses) {
     }
   }
   $('#kpRows').innerHTML = rows.join('');
-  $('#kpTotal').innerHTML = `<div class="tr kpr ord" role="row"><div role="cell"></div><div role="cell"><b>Total</b></div><div class="pr" role="cell"><b>${escapeHtml(formatMoney(total))}</b></div><div role="cell"></div></div>`;
+  $('#kpTotal').innerHTML = `<div class="tr kpr ord" role="row"><div class="dt" role="cell"></div><div class="nm" role="cell"><b>Total</b></div><div class="pr" role="cell"><b>${escapeHtml(formatMoney(total))}</b></div><div class="st" role="cell"></div></div>`;
   scrollAfterRows([$('#kpRows')], '#kpPanel', PURCHASE_ROWS_SHOWN);
 }
 

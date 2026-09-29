@@ -110,7 +110,7 @@ function gameCosts(games, match, historyRows, gamesPage, keyPurchases, priceEdit
   for (const order of orders) {
     if (order.notSteam || order.giftReceived) continue;
     for (const item of order.items) {
-      if (item.paid == null || item.status === 'gifted' || item.status === 'refunded') continue;
+      if (item.forGame || item.paid == null || item.status === 'gifted' || item.status === 'refunded') continue;
       const game = (item.lic && match(item.lic[1], false)) || match(item.name, false);
       addEstimate(game, item.paid / (item.qty || 1), !!item.est || !!order.subEst);
     }

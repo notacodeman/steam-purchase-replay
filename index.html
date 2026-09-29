@@ -100,13 +100,12 @@
  </div>
 </section>
 
-<section id="top50">
+<section id="top">
  <div class="sh"><h2 id="topTitle">Biggest single purchases</h2><p><span class="ln">Before tax, per copy. DLC, hardware and refunded items are left out.</span><span class="ln">Games bought together in one checkout are estimated from the checkout total (marked ≈).</span></p></div>
  <div class="tbl" role="table" aria-label="Biggest single purchases">
   <div class="tr th" role="row" id="topHead"><div role="columnheader">#</div><div role="columnheader">Product</div><div role="columnheader">Purchased</div><div role="columnheader" class="r">Price</div></div>
-  <div id="rows"></div>
+  <div id="topRows"></div>
  </div>
- <button class="more" id="more"></button>
 </section>
 
 <section id="play" hidden>
@@ -150,7 +149,7 @@
  <div class="ktop" id="kTiles"></div>
  <p class="kpct lnote" id="kLicNote"></p>
  <div class="panel"><h3>Licenses added per year, by source</h3><div class="chips" id="lgKeys" role="group" aria-label="Show sources"></div><p class="kpct" id="keysYearHelp">Percentages under each year are shares of that year's licenses for the sources switched on.<br>Turn off Free and Gifts received to compare Steam and keys head to head.</p><div class="kscroll"><div class="ch tall kch"><canvas id="cKeys" aria-label="Library additions per year by source: Steam Store, product keys, free, gifts received"></canvas></div></div></div>
- <div class="panel gap-top"><h3>Licenses on your account over time</h3><p class="kpct" id="libNote"></p><div class="ch"><canvas id="cLib" aria-label="Cumulative number of licenses on your account by source"></canvas></div></div>
+ <div class="panel gap-top"><h3>Licenses on your account over time</h3><p class="kpct" id="libNote"></p><div class="kscroll"><div class="ch kch"><canvas id="cLib" aria-label="Cumulative number of licenses on your account by source"></canvas></div></div></div>
  <div class="grid2 gap-top">
   <div class="panel"><h3 id="keyMonthTitle">Keys vs. store purchases by month</h3><div class="legend" id="keyMonthLegend"><span><i style="background:#e8b64a"></i>Keys activated</span><span><i style="background:#66c0f4"></i>Bought on Steam</span></div><div class="kscroll"><div class="ch short kch narrow"><canvas id="cKeyMonth" aria-label="Key activations and store licenses by month of year"></canvas></div></div><p class="kpct note" id="kMonthNote"></p></div>
   <div class="panel"><h3>Biggest redemption days</h3><div class="sprees" id="sprees"></div></div>
@@ -199,18 +198,20 @@
   <div class="fh"><h2 id="buyH">Add a purchase</h2><button type="button" class="x" aria-label="Close">×</button></div>
   <div class="kpsug" id="buyHints" hidden></div>
   <div class="fg">
-   <label>What was it<select name="type"><option value="purchase">A game or bundle I bought</option><option value="sub">A subscription month (Humble Choice, etc.)</option><option value="gift">A gift someone gave me</option><option value="free">A free giveaway</option><option value="nonsteam">A key for another platform</option></select></label>
+   <label>What was it<select name="type"><option value="purchase">A game or bundle I bought</option><option value="sub">A subscription month (Humble Choice, etc.)</option><option value="gift">A gift someone gave me</option><option value="free">A free giveaway</option><option value="nonsteam">A key for another platform</option><option value="forgame">A game subscription paid outside Steam</option></select></label>
    <label>Date bought<input type="date" name="date" required></label>
-   <label class="w">Game or bundle name<input name="name" maxlength="140" placeholder="e.g. Humble Indie Bundle 12"></label>
+   <label class="w"><span id="buyNameLbl">Game or bundle name</span><input name="name" maxlength="140" placeholder="e.g. Humble Indie Bundle 12"></label>
+   <label class="w" id="buyGame" hidden>For which game<input name="game" list="gameList" maxlength="140" placeholder="e.g. Trackmania"><datalist id="gameList"></datalist></label>
    <label>Store<input name="store" list="storeList" maxlength="60" placeholder="e.g. Humble Bundle"></label>
    <label id="buyPlat" hidden>Platform<input name="platform" maxlength="40" placeholder="e.g. Xbox, Switch, Epic"></label>
    <div id="buyPrice" class="fgrow"><label>Total paid<input name="total" inputmode="decimal" placeholder="Leave blank if unknown"></label>
     <label>Currency<select name="currency"><option id="buyCurLbl"></option><option>EUR</option><option>GBP</option><option>CAD</option><option>AUD</option><option>BRL</option><option>PLN</option></select></label>
     <label id="buyConv" hidden>Charged in <span id="buyCurLbl2"></span><input name="converted" inputmode="decimal" placeholder="From your statement, optional"></label></div>
-   <label>Copies given away<input type="number" name="gifted" min="0" max="999" step="1" value="0"></label>
-   <label>Given to<input name="giftedTo" maxlength="60" placeholder="Optional, e.g. a friend's name"></label>
+   <label class="gifting">Copies given away<input type="number" name="gifted" min="0" max="999" step="1" value="0"></label>
+   <label class="gifting">Given to<input name="giftedTo" maxlength="60" placeholder="Optional, e.g. a friend's name"></label>
   </div>
-  <fieldset class="kpfs"><legend>Keys on your account from this purchase</legend>
+  <p class="kpct buynote" id="buyGameNote" hidden>For money spent on a game outside Steam, like Trackmania Club Access bought from Ubisoft. It's added to what you've spent on that game, so its cost per hour counts it. Add one purchase per payment, or one with the total of every year you paid for.</p>
+  <fieldset class="kpfs" id="buyKeysBox"><legend>Keys on your account from this purchase</legend>
    <p class="kpct">Keys activated the day before to two days after are listed and ticked if they aren't linked to anything else. Untick anything that came from somewhere else.</p>
    <div class="kplist" id="buyKeys"></div>
    <input id="buySearch" type="search" placeholder="Redeemed later? Search your keys by name" aria-label="Search your key activations">

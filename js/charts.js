@@ -208,11 +208,26 @@ function buildTypeChart(history) {
       plugins: { legend: { display: false } },
       scales: {
         x: { ticks: moneyTicks, grid: { color: COLORS.grid } },
-        y: { grid: { display: false }, ticks: { color: COLORS.ink } },
+        y: {
+          grid: { display: false },
+          ticks: {
+            color: COLORS.ink,
+            // on a phone "Games and DLC for you" would be cut off, so long names wrap onto two lines
+            callback(value) {
+              const label = this.getLabelForValue(value);
+              if (this.chart.width >= 500 || label.length <= 12) return label;
+              const middle = label.indexOf(' ', label.length / 2 - 3);
+              return middle > 0 ? [label.slice(0, middle), label.slice(middle + 1)] : label;
+            },
+          },
+        },
       },
     },
   }));
 }
+
+// the payment legend sits beside the doughnut, or under it on narrow screens where it would be cut off
+const legendSide = width => width < 380 ? 'bottom' : 'right';
 
 function buildPaymentChart(history) {
   const methods = Object.keys(history.payment);
@@ -228,9 +243,10 @@ function buildPaymentChart(history) {
     options: {
       maintainAspectRatio: false,
       cutout: '62%',
+      onResize: (chart, size) => chart.options.plugins.legend.position = legendSide(size.width),
       plugins: {
         legend: {
-          position: 'right',
+          position: legendSide($('#cPay').parentElement.clientWidth),
           labels: {
             color: COLORS.ink,
             boxWidth: 12,

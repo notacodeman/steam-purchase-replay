@@ -387,9 +387,12 @@ function renderBigSaves(history) {
 // DLC, season passes and the like, recognised by name.
 const DLC_PATTERN = /season pass|year \d+ pass|\bdlc\b|soundtrack|\bost\b|expansion pass|founder'?s pack|battle level|battle pass|costume|skin pack|upgrade\b/i;
 
+const TOP_GAMES = 100;
+const TOP_ROWS_SHOWN = 20; // rows shown before the list scrolls
+
 function renderTopGames(history) {
   const games = topGames(history);
-  setSectionVisible('top50', games.length > 0);
+  setSectionVisible('top', games.length > 0);
   $('#topTitle').textContent = `Top ${games.length} games by price paid`;
   const gamesPage = report.gamesPage;
   const owned = gamesPage ? makeNameMatcher(gamesPage.games) : null;
@@ -412,21 +415,11 @@ function renderTopGames(history) {
     return '<div class="hc z" role="cell">–</div>';
   };
 
-  let showAll = false;
-  const draw = () => {
-    const shown = showAll ? games : games.slice(0, 20);
-    $('#rows').innerHTML = shown.map((game, i) => topGameRowHtml(game, i, hoursClass, hoursCell(game))).join('');
-    $('#more').hidden = games.length <= 20;
-    $('#more').textContent = showAll ? 'Show top 20 only' : `Show all ${games.length}`;
-  };
-  $('#more').onclick = () => {
-    showAll = !showAll;
-    draw();
-  };
-  draw();
+  $('#topRows').innerHTML = games.map((game, i) => topGameRowHtml(game, i, hoursClass, hoursCell(game))).join('');
+  scrollAfterRows([$('#topRows')], '#top', TOP_ROWS_SHOWN);
 }
 
-// The 50 most expensive games bought for yourself or as gifts, per copy. Single-product checkouts are exact; items of
+// The TOP_GAMES most expensive games bought for yourself or as gifts, per copy. Single-product checkouts are exact; items of
 // multi-item checkouts use the per-item split (exact where confirmed, otherwise estimated and marked ≈).
 function topGames(history) {
   const priceEdits = report.priceEdits;
@@ -476,7 +469,7 @@ function topGames(history) {
     });
   }
   const isDlc = dlcChecker(report.gamesPage);
-  return candidates.filter(g => !isDlc(g.name)).sort((a, b) => b.paid - a.paid).slice(0, 50);
+  return candidates.filter(g => !isDlc(g.name)).sort((a, b) => b.paid - a.paid).slice(0, TOP_GAMES);
 }
 
 // Returns isDlc(name). Obvious add-ons are caught by name. With a games page, anything named "<a game you own>:

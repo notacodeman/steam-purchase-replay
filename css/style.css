@@ -726,6 +726,29 @@ h2 {
   text-align: right;
 }
 
+/* the amounts here vary in width ("$54 · 1%" to "$3,022 · 58%"), so the columns are fixed to keep the bars lined up */
+#stBars .bar {
+  grid-template-columns: 7.5em minmax(0,1fr) 8.5em;
+}
+
+/* biggest sale hauls on a phone: the checkout count goes under the sale's name so the name isn't cut off */
+@media (max-width:600px) {
+  #stTop .vrow {
+    grid-template-columns: minmax(0,1fr) auto;
+    row-gap: 0;
+  }
+  #stTop .vrow .h {
+    grid-column: 1;
+    grid-row: 2;
+    font-size: .86rem;
+  }
+  #stTop .vrow .c {
+    grid-column: 2;
+    grid-row: 1 / 3;
+    align-self: center;
+  }
+}
+
 .saves {
   display: grid;
   gap: 6px;
@@ -1199,7 +1222,7 @@ html {
 
 @media (max-width:860px) {
   .intro {
-    grid-template-columns: 1fr;
+    grid-template-columns: minmax(0,1fr);
   }
 }
 
@@ -1231,7 +1254,7 @@ html {
 .steps li {
   counter-increment: st;
   display: grid;
-  grid-template-columns: 34px 1fr;
+  grid-template-columns: 34px minmax(0,1fr);
   gap: 12px;
   background: rgba(0,0,0,.22);
   border-radius: 3px;
@@ -1269,6 +1292,7 @@ html {
 
 .steps a {
   font-weight: 600;
+  overflow-wrap: anywhere;
 }
 
 kbd {
@@ -1714,6 +1738,16 @@ kbd {
   min-width: 700px;
 }
 
+/* the rows keep the table's full width when it scrolls sideways on a phone, so they stay under their headers */
+/* the note under the purchase form's fields for a game subscription */
+.buynote {
+  margin: 14px 0 0;
+}
+
+#topRows {
+  min-width: min-content;
+}
+
 .tr.hrs .hc.z {
   color: var(--muted);
   font-weight: 400;
@@ -1842,6 +1876,13 @@ kbd {
     grid-area: pr;
   }
   .tr.th.kpr {
+    display: none;
+  }
+  .tr.kpr.ord {
+    grid-template-areas: "nm nm pr";
+  }
+  .tr.kpr.ord .dt,
+  .tr.kpr.ord .st {
     display: none;
   }
 }
