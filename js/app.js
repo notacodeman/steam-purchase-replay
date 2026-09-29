@@ -342,6 +342,37 @@ function initRail() {
   addEventListener('resize', markCurrentSection);
 }
 
+// ---------- settling on section headers ----------
+
+// When you stop scrolling with a section header within SNAP_DISTANCE of the top of the window, the page eases onto
+// it. Anywhere else it stays where you left it. Only your own scrolling counts (wheel, touch, scroll keys), not the
+// page restoring its position after a redraw. (CSS scroll snapping pulls from much further away, with no setting.)
+const SNAP_DISTANCE = 80;
+const SCROLL_KEYS = ['ArrowDown', 'ArrowUp', 'PageDown', 'PageUp', 'Home', 'End', ' '];
+
+function initSectionSnap() {
+  let lastInput = -Infinity;
+  let timer = 0;
+  const settle = () => {
+    if ($('#report').hidden || performance.now() - lastInput > 1000) return;
+    const padding = parseFloat(getComputedStyle(document.documentElement).scrollPaddingTop) || 0;
+    const nearest = $$('#report > section:not([hidden])')
+      .map(section => section.getBoundingClientRect().top - padding)
+      .reduce((best, distance) => Math.abs(distance) < Math.abs(best) ? distance : best, Infinity);
+    if (Math.abs(nearest) > 1 && Math.abs(nearest) <= SNAP_DISTANCE) scrollBy({ top: nearest, behavior: 'smooth' });
+  };
+  const input = () => lastInput = performance.now();
+  addEventListener('wheel', input, { passive: true });
+  addEventListener('touchmove', input, { passive: true });
+  addEventListener('keydown', event => {
+    if (SCROLL_KEYS.includes(event.key) && !event.target.closest('input, select, textarea')) input();
+  });
+  addEventListener('scroll', () => {
+    clearTimeout(timer);
+    timer = setTimeout(settle, 150);
+  }, { passive: true });
+}
+
 // ---------- startup ----------
 
 function initUploadScreen() {
@@ -441,6 +472,7 @@ initUploadScreen();
 initReportTools();
 initForms();
 initRail();
+initSectionSnap();
 loadKnownData().then(() => {
   if (isDownloadedReport()) openDownloadedReport();
   else reopenSavedReport();

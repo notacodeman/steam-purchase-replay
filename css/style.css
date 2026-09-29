@@ -1047,16 +1047,6 @@ html {
   }
 }
 
-/* while a report is open, scrolling that stops near a section's header settles on it ("proximity", so a long
-   section can still be read part-way down) */
-html:has(#report:not([hidden])) {
-  scroll-snap-type: y proximity;
-}
-
-#report > section {
-  scroll-snap-align: start;
-}
-
 .toc {
   position: fixed;
   z-index: 30;
