@@ -373,7 +373,8 @@ function purchaseRowHtml(order, item, statusKey, statusLabel, qty) {
   else if (item.paid == null) paid = muted('Price unknown');
   else paid = (item.est ? '≈ ' : '') + escapeHtml(formatMoney(item.paid));
 
-  const activated = item.lic && item.lic[0] !== order.date ? ` (${formatDate(item.lic[0])})` : '';
+  // activated on a different day than it was bought: that date goes on its own line under the status
+  const activated = item.lic && item.lic[0] !== order.date ? `<span class="activated">${formatDate(item.lic[0])}</span>` : '';
   const style = (PURCHASE_STATUS[statusKey] || PURCHASE_STATUS.found)[1];
   return `<div class="tr kpr" role="row">
     <div class="dt" role="cell">${date}</div>

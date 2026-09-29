@@ -1807,6 +1807,13 @@ kbd {
   color: #e8b64a;
 }
 
+/* activation date when it differs from the purchase date, on the line under the status */
+.tr.kpr .st .activated {
+  display: block;
+  color: var(--muted);
+  font-size: .86rem;
+}
+
 .tr.kpr.ord {
   background: rgba(0,0,0,.28);
   font-size: .9rem;
