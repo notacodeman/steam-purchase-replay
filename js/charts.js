@@ -589,3 +589,42 @@ function buildLicenseMonthChart(licenses) {
     },
   }));
 }
+
+// ---------- comparison ----------
+
+// Both accounts' spending per year as bars next to each other, hardware left out, with each side's amounts under
+// the axis. In different currencies the amounts can't share an axis, so each year is a share of that side's total.
+function buildCompareYearChart(sides, asShare) {
+  const first = Math.min(...sides.map(side => side.history.years[0]));
+  const last = Math.max(...sides.map(side => side.history.years[side.history.years.length - 1]));
+  const years = [];
+  for (let y = first; y <= last; y++) years.push(y);
+  const series = sides.map(side => {
+    const perYear = yearlyWithoutHardware(side.history);
+    const data = years.map(y => Math.max(0, perYear[side.history.years.indexOf(y)] || 0));
+    const total = sum(data);
+    return asShare ? data.map(v => total ? v / total * 100 : 0) : data;
+  });
+  const figure = (side, v) => asShare ? (v >= 0.5 ? Math.round(v) + '%' : '') : inCurrency(side.money, () => moneyOrBlank(v));
+  const rows = () => sides.map((side, k) => ({ label: side.short, color: SIDE_COLORS[k], value: i => figure(side, series[k][i]) }));
+  charts.push(new Chart($('#cCmpYear'), {
+    type: 'bar',
+    plugins: [valueRows(rows)],
+    data: {
+      labels: years.map(String),
+      datasets: sides.map((side, k) => ({
+        label: side.name, data: series[k], backgroundColor: SIDE_COLORS[k], borderWidth: 0, barPercentage: 0.9, categoryPercentage: 0.8,
+      })),
+    },
+    options: {
+      maintainAspectRatio: false,
+      layout: { padding: { top: 8, bottom: rowsPadding(sides.length) } },
+      plugins: { legend: { display: false } },
+      scales: {
+        x: { grid: { display: false }, ticks: { color: COLORS.ink } },
+        // wider than the other charts' axis, to leave room for the names under it
+        y: { ticks: asShare ? { callback: v => v + '%' } : moneyTicks, grid: { color: COLORS.grid }, afterFit: minAxisWidth(92) },
+      },
+    },
+  }));
+}

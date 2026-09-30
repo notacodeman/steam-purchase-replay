@@ -1,5 +1,6 @@
 // GET /api/known-data: public. The known packs, bundles and free-to-play games the site matches against, as kept in
 // the admin page. The site falls back to its built-in data/known-packages.js when this fails or is empty.
+// Downloaded reports fetch it from wherever they're opened (often straight from disk), so any origin may read it.
 
 const json = (body, status = 200, headers = {}) =>
   new Response(JSON.stringify(body), { status, headers: { 'Content-Type': 'application/json', ...headers } });
@@ -16,7 +17,7 @@ export async function onRequestGet({ env }) {
       packages: packages.results.map(p => ({ licenses: JSON.parse(p.licenses), games: JSON.parse(p.games) })),
       bundles: bundles.results.map(({ ends, ...b }) => ({ ...b, ...(ends ? { ends } : {}), games: JSON.parse(b.games) })),
       free: free.results.map(f => f.name),
-    }, 200, { 'Cache-Control': 'public, max-age=60' });
+    }, 200, { 'Cache-Control': 'public, max-age=60', 'Access-Control-Allow-Origin': '*' });
   } catch (err) {
     return json({ ok: false, error: String(err && err.message || err) }, 500);
   }

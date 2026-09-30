@@ -1,5 +1,8 @@
 // Small helpers shared by every other script: DOM access, dates, money, names and colours.
 
+// Where the site lives. Downloaded reports load their scripts, styles and the known packages list from here.
+const SITE_URL = 'https://steam.codeman.club';
+
 // Amounts smaller than this are treated as zero (rounding noise).
 const HALF_CENT = 0.005;
 

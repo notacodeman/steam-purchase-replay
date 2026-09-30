@@ -2799,3 +2799,238 @@ footer a {
 footer a:hover {
   color: #fff;
 }
+
+/* ---------- comparing two reports ---------- */
+
+.rtools .back {
+  margin-right: auto;
+}
+
+.cmphead {
+  display: grid;
+  grid-template-columns: repeat(2,minmax(0,1fr));
+  gap: 16px;
+}
+
+.cmpcard {
+  display: grid;
+  gap: 2px;
+  padding: 14px 16px;
+  border-top: 3px solid var(--c);
+  border-radius: 3px;
+  background: rgba(0,0,0,.25);
+  color: var(--muted);
+  font-size: .92rem;
+}
+
+.cmpcard b {
+  color: var(--ink);
+  font-size: clamp(1.1rem,2.4vw,1.4rem);
+  overflow-wrap: anywhere;
+}
+
+#cmpWarn {
+  margin-top: 16px;
+}
+
+/* the two accounts' colours next to their names */
+.sw {
+  display: inline-block;
+  width: 10px;
+  height: 10px;
+  margin-right: 7px;
+  border-radius: 2px;
+  vertical-align: baseline;
+}
+
+.legend .sw {
+  margin-right: 6px;
+}
+
+.tr.cmpr.th div {
+  min-width: 0;
+  overflow-wrap: anywhere;
+  line-height: 1.3;
+  padding: 6px 0;
+}
+
+/* on a phone the table's header uses the shortened names, so they don't break mid-word */
+.tr.cmpr.th .short {
+  display: none;
+}
+
+.tr.cmpr {
+  grid-template-columns: minmax(0,1.4fr) repeat(2,minmax(0,1fr));
+  min-width: 0;
+}
+
+.tr.cmpg {
+  grid-template-columns: minmax(0,1fr) repeat(2,8.5em);
+  min-width: 0;
+}
+
+.tr.cmpr .cl {
+  padding: 7px 0;
+  color: #dcdedf;
+  font-weight: 600;
+}
+
+.tr.cmpr .cl span {
+  display: block;
+  color: var(--muted);
+  font-size: .86rem;
+  font-weight: 400;
+}
+
+.tr.cmpr .cv {
+  display: grid;
+  justify-items: end;
+  gap: 4px;
+  color: var(--ink);
+}
+
+.tr.cmpr .cv.none {
+  color: var(--dim);
+}
+
+.cbar {
+  width: 100%;
+  max-width: 160px;
+  height: 4px;
+  border-radius: 1px;
+  background: rgba(255,255,255,.05);
+  display: flex;
+  justify-content: flex-end;
+}
+
+.cbar i {
+  height: 100%;
+  border-radius: 1px;
+}
+
+.tr.cmpgrp {
+  grid-template-columns: 1fr;
+  min-width: 0;
+  min-height: 30px;
+  color: var(--blue);
+  font-size: .86rem;
+  font-weight: 700;
+  letter-spacing: .04em;
+  text-transform: uppercase;
+  background: rgba(0,0,0,.3);
+}
+
+.tr.cmpgrp span {
+  margin-left: 10px;
+  color: var(--muted);
+  font-weight: 400;
+  letter-spacing: 0;
+  text-transform: none;
+}
+
+.tr.cmpg .z {
+  color: var(--dim);
+}
+
+#cmpMixLegend {
+  margin-bottom: 12px;
+}
+
+/* a label, then one bar per account with its share and amount; the columns are fixed so the bars line up */
+.cshare {
+  display: grid;
+  gap: 3px;
+  margin-bottom: 12px;
+}
+
+.cshare-l {
+  color: #dcdedf;
+  font-size: .95rem;
+}
+
+.cshare-r {
+  display: grid;
+  grid-template-columns: minmax(0,1fr) 3.5em 6.5em;
+  gap: 10px;
+  align-items: center;
+  font-size: .9rem;
+}
+
+.cshare-r .trk {
+  height: 8px;
+  border-radius: 1px;
+  background: rgba(255,255,255,.05);
+}
+
+.cshare-r i {
+  display: block;
+  height: 100%;
+  border-radius: 1px;
+}
+
+.cshare-r b {
+  color: var(--ink);
+  text-align: right;
+}
+
+.cshare-r span:last-child {
+  color: var(--muted);
+  text-align: right;
+}
+
+/* the dialog for picking the other report */
+.drop.cmpdrop {
+  min-height: 150px;
+  margin-top: 12px;
+}
+
+.cmplh {
+  margin: 14px 0 0;
+  color: var(--ink);
+  font-size: 1rem;
+}
+
+.ritem.cmpitem {
+  grid-template-columns: minmax(0,1fr) auto;
+  width: 100%;
+  border-top: 0;
+  border-right: 0;
+  border-bottom: 0;
+  font: inherit;
+  text-align: left;
+}
+
+.ritem.cmpitem .ract {
+  color: var(--blue);
+  font-weight: 700;
+}
+
+.ritem.cmpitem:focus-visible {
+  outline: 2px solid #fff;
+  outline-offset: 1px;
+}
+
+@media (max-width:600px) {
+  .cmphead {
+    grid-template-columns: 1fr;
+    gap: 10px;
+  }
+  .tr.cmpg {
+    grid-template-columns: minmax(0,1fr) repeat(2,5.5em);
+  }
+  .tr.cmpg .nm {
+    white-space: normal;
+    padding: 5px 0;
+    line-height: 1.3;
+  }
+  .tr.cmpr.th .full {
+    display: none;
+  }
+  .tr.cmpr.th .short {
+    display: inline;
+    white-space: nowrap;
+  }
+  .cshare-r {
+    grid-template-columns: minmax(0,1fr) 3.2em 5.5em;
+  }
+}

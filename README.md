@@ -10,8 +10,13 @@ Live at **https://steam.codeman.club**.
 - Everything is read in the browser. Files are never uploaded; only the parsed data is kept in the visitor's own
   browser storage so the report is there next time.
 - Purchases from other key stores can be added by hand or imported from a CSV/Excel sheet.
-- **Download report** saves a single self-contained HTML file with the data embedded, which opens without the site.
-  A downloaded report, anyone's, can also be dropped back onto the upload screen to import it.
+- **Download report** saves a single HTML file: the page's markup with the report's data embedded. Its stylesheet,
+  scripts and known packages list are loaded from the live site when it's opened, so the file stays small and uses
+  the site's current code (opening it needs a connection). A downloaded report, anyone's, can also be dropped back
+  onto the upload screen to import it.
+- **Compare** puts the report on screen next to another one: a report saved in this browser, a downloaded report
+  someone sent (dropped into the Compare dialog, which also saves it in this browser), or the example account. Each
+  account is shown in its own currency; the year chart switches to shares of each total when the currencies differ.
 - Several reports can be kept in one browser. The upload screen lists them; the one picked there is the one that opens,
   or that newly dropped pages are added to.
 
@@ -40,6 +45,7 @@ global scope, so a script can use anything defined in the ones before it.
 | `js/forms.js` | Add/edit purchase, edit price, spreadsheet import |
 | `js/storage.js` | Saving to and loading from browser storage, one entry per report |
 | `js/export.js` | Share card image and the downloadable report |
+| `js/compare.js` | Comparing two reports side by side |
 | `admin.html` | Admin page for the known packs, bundles and free-to-play games |
 | `functions/` | Cloudflare Pages Functions: `/api/known-data` (public), `/api/admin/*` and the D1 schema |
 | `js/app.js` | Upload screen and saved-report list, building a report, section navigation, startup |
@@ -69,11 +75,12 @@ after is suggested as a free giveaway, so it isn't left looking like a missing p
 
 ## Running it locally
 
-Open `index.html` directly, or serve the folder (for example `python -m http.server`). Download report needs the page
-served over HTTP, because it reads the CSS and script files to inline them.
+Open `index.html` directly, or serve the folder (for example `python -m http.server`). A report downloaded from a local
+copy served over HTTP loads its files from that copy; one downloaded from a page opened from disk loads them from
+steam.codeman.club.
 
 External requests: Chart.js (jsDelivr), the Albert Sans font (Google Fonts), SheetJS (cdnjs) only when an Excel
-file is imported, and `/api/known-data` on the live site. The admin page and its API need `wrangler pages dev` with a
-D1 binding locally.
+file is imported, and `/api/known-data` on the live site, which any origin may read so downloaded reports opened from
+disk can use it. The admin page and its API need `wrangler pages dev` with a D1 binding locally.
 
 Not affiliated with Valve.

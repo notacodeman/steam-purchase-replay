@@ -2,22 +2,11 @@
 
 // ---------- building a report ----------
 
-// historyRows, licenseRows and gamesPage are parsed pages (see parse.js); priceEdits, keyPurchases and gameLinks are
-// the visitor's own additions. id is the saved report it came from (see storage.js), from the downloaded report it was
-// imported from, and fromFile is set when this page is a downloaded report showing its own data.
-// Returns false if the purchase history couldn't be read.
-function runReport({
-  historyRows, licenseRows, gamesPage, accountName, isExample = false, priceEdits = null, keyPurchases = null, gameLinks = null,
-  id = null, from = null, fromFile = false,
-}) {
-  let history;
-  try {
-    history = analyzeHistory(historyRows, gamesPage);
-  } catch (e) {
-    console.error(e);
-    $('#imsg').innerHTML = '<div class="msg err">Something in the purchase history couldn\'t be read. Try saving the page again after it has fully loaded.</div>';
-    return false;
-  }
+// Works out a report's figures from parsed pages (see parse.js) and the visitor's own additions: priceEdits,
+// keyPurchases and gameLinks. Throws if the purchase history can't be read. Used for the report on screen and for the
+// other side of a comparison.
+function analyzeReport({ historyRows, licenseRows, gamesPage, priceEdits = null, keyPurchases = null, gameLinks = null }) {
+  const history = analyzeHistory(historyRows, gamesPage);
   const licenses = analyzeLicenses(licenseRows && licenseRows.length ? licenseRows : synthesizeLicenses(history, gamesPage), gamesPage);
   let playtime = null;
   if (gamesPage && gamesPage.games && gamesPage.games.length) {
@@ -27,12 +16,32 @@ function runReport({
       console.error(e);
     }
   }
+  return { history, licenses, playtime };
+}
+
+// Shows a report. id is the saved report it came from (see storage.js), from the downloaded report it was imported
+// from, and fromFile is set when this page is a downloaded report showing its own data.
+// Returns false if the purchase history couldn't be read.
+function runReport({
+  historyRows, licenseRows, gamesPage, accountName, isExample = false, priceEdits = null, keyPurchases = null, gameLinks = null,
+  id = null, from = null, fromFile = false,
+}) {
+  let analysis;
+  try {
+    analysis = analyzeReport({ historyRows, licenseRows, gamesPage, priceEdits, keyPurchases, gameLinks });
+  } catch (e) {
+    console.error(e);
+    $('#imsg').innerHTML = '<div class="msg err">Something in the purchase history couldn\'t be read. Try saving the page again after it has fully loaded.</div>';
+    return false;
+  }
+  const { history, licenses, playtime } = analysis;
   Object.assign(report, {
     historyRows, licenseRows: licenseRows || [], gamesPage: gamesPage || null, accountName, isExample,
     history, licenses, playtime, priceEdits: priceEdits || null, keyPurchases: keyPurchases || null, gameLinks: gameLinks || null,
     id, from, fromFile,
   });
   $('#intro').hidden = true;
+  $('#compare').hidden = true;
   $('#report').hidden = false;
   $('#reset').hidden = false;
   $('#exbar').hidden = !isExample;
@@ -53,6 +62,7 @@ const runSavedReport = (saved, overrides = {}) => runReport({
 function showUploadScreen() {
   destroyCharts();
   $('#report').hidden = true;
+  $('#compare').hidden = true;
   $('#intro').hidden = false;
   $('#reset').hidden = true;
   $('#toc').hidden = true;
@@ -402,6 +412,7 @@ function initReportTools() {
   $('#exOwn').onclick = showUploadScreen;
   $('#bShare').onclick = openShareCard;
   $('#bDl').onclick = downloadReport;
+  $('#bCmp').onclick = openCompareDialog;
   $('#shareClose').onclick = () => $('#shareDlg').close();
   $('#shareDlg').addEventListener('click', event => {
     if (event.target === $('#shareDlg')) $('#shareDlg').close();
@@ -450,12 +461,12 @@ function reopenSavedReport() {
 }
 
 // The live site keeps its known packs, bundles and free games in the admin page's database; this replaces the
-// built-in copy from data/known-packages.js with it. A downloaded report keeps the copy it was saved with. If the
-// list can't be fetched in time, the built-in copy is used.
+// built-in copy from data/known-packages.js with it. A downloaded report (or a page opened from disk) asks the live
+// site, so it always matches against the current list. If the list can't be fetched in time, the built-in copy is used.
 async function loadKnownData() {
-  if (isDownloadedReport() || !/^https?:$/.test(location.protocol)) return;
+  const base = isDownloadedReport() || !/^https?:$/.test(location.protocol) ? SITE_URL : '';
   try {
-    const response = await fetch('/api/known-data', { signal: AbortSignal.timeout(3000) });
+    const response = await fetch(base + '/api/known-data', { signal: AbortSignal.timeout(3000) });
     if (!response.ok) return;
     const data = await response.json();
     if (!data.ok || !data.packages.length) return;
@@ -471,6 +482,7 @@ capturePristinePage();
 initUploadScreen();
 initReportTools();
 initForms();
+initCompare();
 initRail();
 initSectionSnap();
 loadKnownData().then(() => {

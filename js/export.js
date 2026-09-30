@@ -146,9 +146,11 @@ async function drawShareCard() {
 
 // ---------- downloadable report ----------
 
-// A single HTML file that opens without this site: the page with its stylesheet and scripts inlined and the report's
-// data embedded. With "Hide names" on, friends' names and the account name are left out.
-async function downloadReport() {
+// A single HTML file holding the page's markup and the report's data. Its stylesheet and scripts, and the known packs
+// and bundles, are loaded from the live site when it's opened, so the file stays small and always matches with the
+// site's current code and lists. Opening it needs an internet connection; dropping it onto the site doesn't.
+// With "Hide names" on, friends' names and the account name are left out.
+function downloadReport() {
   let historyRows = report.historyRows;
   let keyPurchases = report.keyPurchases;
   let name = report.accountName;
@@ -184,48 +186,17 @@ async function downloadReport() {
     stamp: Date.now().toString(36),
   }).replace(/</g, '\\u003c');
 
-  let page;
-  try {
-    page = await inlineAssets(pristinePage);
-  } catch (e) {
-    console.error(e);
-    $('#savedNote').textContent = "Couldn't build the download: the page's files didn't load. Try again from steam.codeman.club.";
-    $('#savedNote').hidden = false;
-    return;
-  }
+  const page = linkAssetsToSite(pristinePage);
   const dataTag = `<script id="embedded-data" type="application/json">${data}<\/script>\n`;
   const at = page.indexOf('<script src="https://cdn.jsdelivr.net');
   downloadFile(page.slice(0, at) + dataTag + page.slice(at), 'text/html', `steam-replay${name ? '-' + fileSafe(name) : ''}.html`);
 }
 
-// Replaces the page's own stylesheet and script tags with their contents. A downloaded report is already inlined.
-async function inlineAssets(html) {
-  const tags = [...html.matchAll(/<link rel="stylesheet" href="(css\/[^"]+)">|<script src="((?:js|data)\/[^"]+)"><\/script>/g)];
-  const contents = await Promise.all(tags.map(async ([, css, js]) => {
-    // the report keeps the known packages list that was in use, which on the live site comes from the admin page
-    if (js === 'data/known-packages.js') return `<script>\n${knownDataScript().replace(/<\/script/gi, '<\\/script')}</script>`;
-    const response = await fetch(css || js);
-    if (!response.ok) throw new Error(`${css || js}: ${response.status}`);
-    const text = await response.text();
-    return css ? `<style>\n${text}</style>` : `<script>\n${text.replace(/<\/script/gi, '<\\/script')}</script>`;
-  }));
-  tags.forEach(([tag], i) => {
-    html = html.replace(tag, () => contents[i]);
-  });
-  return html;
-}
-
-// The known packages list in use, written as data/known-packages.js would be. The bundle list is long (every Humble
-// Bundle), so only bundles with a game among the report's unlinked keys are kept: they're only used to suggest where
-// those keys came from.
-function knownDataScript() {
-  const unlinked = new Set(unlinkedKeys(report.licenses).flatMap(licenseForms));
-  const bundles = report.licenses
-    ? KNOWN_BUNDLES.filter(bundle => [...bundleForms(bundle)].some(f => unlinked.has(f)))
-    : KNOWN_BUNDLES;
-  return [
-    `const KNOWN_PACKAGES = ${JSON.stringify(KNOWN_PACKAGES)};`,
-    `const KNOWN_BUNDLES = ${JSON.stringify(bundles)};`,
-    `const FREE_TO_PLAY = ${JSON.stringify(FREE_TO_PLAY)};`,
-  ].join('\n') + '\n';
+// Points the page's own stylesheet and script tags at the site they came from: this site when it's served over HTTP
+// (the live site, or a local copy while testing), else the live site. A downloaded report's links already are.
+function linkAssetsToSite(html) {
+  const base = /^https?:$/.test(location.protocol) ? location.origin : SITE_URL;
+  return html
+    .replace(/<link rel="stylesheet" href="(css\/[^"]+)">/g, (_, path) => `<link rel="stylesheet" href="${base}/${path}">`)
+    .replace(/<script src="((?:js|data)\/[^"]+)"><\/script>/g, (_, path) => `<script src="${base}/${path}"></script>`);
 }

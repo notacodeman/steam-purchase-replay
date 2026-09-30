@@ -57,6 +57,7 @@
 <div class="rtools">
  <span class="saved" id="savedNote" hidden></span>
  <label class="tog"><input type="checkbox" id="anon"><span class="sw" aria-hidden="true"></span>Hide names</label>
+ <button class="tbtn" id="bCmp"><svg viewBox="0 0 16 16" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><path d="M4 14V6M7 14V2M10 14V8M13 14V4"/></svg>Compare</button>
  <button class="tbtn" id="bShare"><svg viewBox="0 0 16 16" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="1.5" y="3" width="13" height="10" rx="1.5"/><path d="M1.5 10.5l3.5-3 3 2.5 2.5-2 4 3"/></svg>Share card</button>
  <button class="tbtn" id="bDl"><svg viewBox="0 0 16 16" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><path d="M8 2v8M4.5 7L8 10.5 11.5 7M2.5 13.5h11"/></svg>Download report</button>
 </div>
@@ -188,6 +189,51 @@
 </section>
 <p class="savedline">Your report and any purchases you add are saved in this browser, so they'll be here next time. <button class="linkbtn" id="kpForget">Remove saved data</button></p>
 </div>
+<div id="compare" hidden>
+<div class="rtools">
+ <button class="tbtn back" id="cmpBack"><svg viewBox="0 0 16 16" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M10 3L5 8l5 5"/></svg>Back to the report</button>
+ <button class="tbtn" id="cmpOther">Compare with someone else</button>
+</div>
+<div class="cmphead" id="cmpHead"></div>
+<div class="msg warn warnbar" id="cmpWarn" hidden></div>
+
+<section id="cmpTotals">
+ <div class="sh"><h2>Side by side</h2><p>Each account in its own currency. The bar under each figure shows it against the other account's.</p></div>
+ <div class="tbl" role="table" aria-label="Figures for both accounts side by side">
+  <div class="tr th cmpr" role="row" id="cmpTotalsHead"></div>
+  <div id="cmpRows"></div>
+ </div>
+</section>
+
+<section id="cmpYears">
+ <div class="sh"><h2>Year by year</h2><p id="cmpYearLede"></p></div>
+ <div class="panel"><div class="legend" id="cmpYearLegend"></div><div class="kscroll"><div class="ch kch wide"><canvas id="cCmpYear" aria-label="Spending per year for both accounts"></canvas></div></div></div>
+</section>
+
+<section id="cmpMix">
+ <div class="sh"><h2>Where it went</h2><p>Shares of each account's own total, so different budgets and currencies compare fairly.</p></div>
+ <div class="legend" id="cmpMixLegend"></div>
+ <div class="grid2">
+  <div class="panel"><h3>By type of purchase</h3><p class="kpct">After refunds, hardware excluded.</p><div id="cmpTypes"></div></div>
+  <div class="panel" id="cmpSourcesPanel"><h3>Where licenses came from</h3><p class="kpct">Every license on the account, betas and playtests included.</p><div id="cmpSources"></div></div>
+ </div>
+</section>
+
+<section id="cmpGames">
+ <div class="sh"><h2 id="cmpGamesTitle">Games you both own</h2><p id="cmpGamesLede"></p></div>
+ <div class="tbl" role="table" aria-label="Games on both accounts">
+  <div class="tr th cmpg" role="row" id="cmpGamesHead"></div>
+  <div id="cmpCommon"></div>
+ </div>
+</section>
+</div>
+<dialog id="cmpDlg" class="fdlg" aria-labelledby="cmpH">
+ <div class="fh"><h2 id="cmpH">Compare with another report</h2><button type="button" class="x" aria-label="Close">×</button></div>
+ <p class="kpct">Drop in a report someone downloaded from this site and sent you, or pick one saved in this browser. A dropped report is added to the reports saved in this browser. Nothing is uploaded.</p>
+ <label class="drop cmpdrop" id="cmpDrop"><input type="file" id="cmpFile" accept=".htm,.html,text/html"><svg viewBox="0 0 48 48" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M24 32V10M15 19l9-9 9 9"/><path d="M8 30v8h32v-8"/></svg><div><b>Drop a report file</b><span>or click to choose one</span></div></label>
+ <div class="ferr" id="cmpErr" role="alert"></div>
+ <div id="cmpList"></div>
+</dialog>
 <dialog id="shareDlg" aria-labelledby="shareH">
  <h2 id="shareH">Share card</h2>
  <img id="shareImg" alt="Summary image of this Steam spending report" width="1200" height="630">
@@ -269,6 +315,7 @@
 <script src="js/forms.js"></script>
 <script src="js/storage.js"></script>
 <script src="js/export.js"></script>
+<script src="js/compare.js"></script>
 <script src="js/app.js"></script>
 </body>
 </html>
