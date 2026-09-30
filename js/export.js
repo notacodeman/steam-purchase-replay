@@ -215,11 +215,17 @@ async function inlineAssets(html) {
   return html;
 }
 
-// The known packages list in use, written as data/known-packages.js would be.
+// The known packages list in use, written as data/known-packages.js would be. The bundle list is long (every Humble
+// Bundle), so only bundles with a game among the report's unlinked keys are kept: they're only used to suggest where
+// those keys came from.
 function knownDataScript() {
+  const unlinked = new Set(unlinkedKeys(report.licenses).flatMap(licenseForms));
+  const bundles = report.licenses
+    ? KNOWN_BUNDLES.filter(bundle => [...bundleForms(bundle)].some(f => unlinked.has(f)))
+    : KNOWN_BUNDLES;
   return [
     `const KNOWN_PACKAGES = ${JSON.stringify(KNOWN_PACKAGES)};`,
-    `const KNOWN_BUNDLES = ${JSON.stringify(KNOWN_BUNDLES)};`,
+    `const KNOWN_BUNDLES = ${JSON.stringify(bundles)};`,
     `const FREE_TO_PLAY = ${JSON.stringify(FREE_TO_PLAY)};`,
   ].join('\n') + '\n';
 }

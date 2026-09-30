@@ -25,16 +25,20 @@ export async function onRequestPost({ request, env }) {
   await env.DB.batch([
     log('packages', oldPackages.results), log('bundles', oldBundles.results), log('free_games', oldFree.results),
     env.DB.prepare('DELETE FROM packages'), env.DB.prepare('DELETE FROM bundles'), env.DB.prepare('DELETE FROM free_games'),
-    ...body.packages.map(([licenses, games]) => env.DB.prepare(
-      'INSERT INTO packages (licenses, games, note, updated_at) VALUES (?, ?, ?, ?)'
-    ).bind(JSON.stringify(licenses), JSON.stringify(games), '', now)),
-    ...body.bundles.map(b => env.DB.prepare(
-      'INSERT INTO bundles (name, store, kind, date, ends, price, games, note, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)'
-    ).bind(b.name, b.store || '', ['sub', 'giveaway'].includes(b.kind) ? b.kind : 'bundle', b.date,
-      /^\d{4}-\d{2}-\d{2}$/.test(b.ends || '') ? b.ends : null, b.price ?? null, JSON.stringify(b.games), '', now)),
-    ...[...new Set(body.free)].map(name => env.DB.prepare(
-      'INSERT INTO free_games (name, updated_at) VALUES (?, ?)'
-    ).bind(name, now)),
+    // One INSERT per table reading a JSON array, so the long bundle list stays well under D1's per-request query limit.
+    env.DB.prepare(`INSERT INTO packages (licenses, games, note, updated_at)
+      SELECT json_extract(value, '$[0]'), json_extract(value, '$[1]'), '', ?2 FROM json_each(?1)`)
+      .bind(JSON.stringify(body.packages), now),
+    env.DB.prepare(`INSERT INTO bundles (name, store, kind, date, ends, price, games, note, updated_at)
+      SELECT json_extract(value, '$.name'), json_extract(value, '$.store'), json_extract(value, '$.kind'),
+        json_extract(value, '$.date'), json_extract(value, '$.ends'), json_extract(value, '$.price'),
+        json_extract(value, '$.games'), '', ?2 FROM json_each(?1)`)
+      .bind(JSON.stringify(body.bundles.map(b => ({
+        name: b.name, store: b.store || '', kind: ['sub', 'giveaway'].includes(b.kind) ? b.kind : 'bundle', date: b.date,
+        ends: /^\d{4}-\d{2}-\d{2}$/.test(b.ends || '') ? b.ends : null, price: b.price ?? null, games: JSON.stringify(b.games),
+      }))), now),
+    env.DB.prepare('INSERT INTO free_games (name, updated_at) SELECT value, ?2 FROM json_each(?1)')
+      .bind(JSON.stringify([...new Set(body.free)]), now),
   ]);
   return json({ ok: true, packages: body.packages.length, bundles: body.bundles.length, free: body.free.length });
 }

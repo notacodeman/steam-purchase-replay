@@ -54,6 +54,12 @@ changing their field names breaks reports people already have.
 line in date order and move `coveredUntil` to its last day. Purchases after `coveredUntil` are left out of the sale
 timing figures, and the page says so.
 
+## Bundle suggestions
+
+Unlinked key activations are compared with the known bundles (`KNOWN_BUNDLES`, and the admin page's Bundles tab). A
+bundle is suggested when two or more of its games were activated as keys on or after its sale date and within 30 days
+of each other (`BUNDLE_SPREAD_DAYS` in `js/purchases.js`), since a bundle's keys are usually redeemed together.
+
 ## Free key giveaways
 
 Known bundles (`KNOWN_BUNDLES`, and the admin page's Bundles tab) can also be free key giveaways: kind `giveaway`, with

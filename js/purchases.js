@@ -192,6 +192,13 @@ function nameForms(name) {
 }
 const licenseForms = license => [license.name, license.steamName].flatMap(nameForms);
 
+// Name forms of each bundle's games, worked out once per bundle (the list is long and checked on every render).
+const bundleFormCache = new WeakMap();
+function bundleForms(bundle) {
+  if (!bundleFormCache.has(bundle)) bundleFormCache.set(bundle, new Set(bundle.games.flatMap(nameForms)));
+  return bundleFormCache.get(bundle);
+}
+
 // The days a key from a known bundle could have been activated: from the day before it went on sale, and for a
 // giveaway, until the day after it ended.
 const bundleWindow = bundle => [addDays(bundle.date, -1), bundle.ends ? addDays(bundle.ends, 1) : '9999'];
@@ -200,20 +207,44 @@ const isGiveaway = bundle => bundle.kind === 'giveaway';
 // between back-to-back giveaways of the same game.
 const withinDates = (bundle, license) => license.date >= bundle.date && (!bundle.ends || license.date <= bundle.ends);
 
+// A bundle's keys are usually redeemed together, so keys only count as one bundle when they were all activated
+// within this many days of each other. Without it, any two keys of games that were ever bundled together would match.
+const BUNDLE_SPREAD_DAYS = 30;
+const daysApart = (a, b) => Math.abs(new Date(a + 'T12:00') - new Date(b + 'T12:00')) / 864e5;
+
+// The largest group of keys activated within BUNDLE_SPREAD_DAYS of each other, the earliest one on a tie.
+function closestKeys(keys) {
+  const sorted = [...keys].sort((a, b) => a.date.localeCompare(b.date));
+  let best = [];
+  for (let first = 0, last = 0; last < sorted.length; last++) {
+    while (daysApart(sorted[first].date, sorted[last].date) > BUNDLE_SPREAD_DAYS) first++;
+    if (last - first + 1 > best.length) best = sorted.slice(first, last + 1);
+  }
+  return best;
+}
+
+// Unlinked keys of a bundle's games activated in its window (bundleWindow). keyForms maps each key to its name forms.
+function keysInBundle(bundle, keys, keyForms) {
+  const games = bundleForms(bundle);
+  const [from, to] = bundleWindow(bundle);
+  return keys.filter(l => l.date >= from && l.date <= to && keyForms.get(l).some(f => games.has(f)));
+}
+
 // Known bundles (KNOWN_BUNDLES in data/known-packages.js) that unlinked key activations probably came from, most
 // keys first: [{ bundle, keys }]. A key counts for a bundle when it's one of its games and was activated in its window
-// (bundleWindow). Each key goes to one bundle only. A bundle needs two keys to be suggested; a giveaway, one.
+// (bundleWindow); a bundle's keys also have to be activated within BUNDLE_SPREAD_DAYS of each other. Each key goes to
+// one bundle only. A bundle needs two keys to be suggested; a giveaway, one.
 function bundleSuggestions(unlinked) {
+  const keyForms = new Map(unlinked.map(l => [l, licenseForms(l)]));
+  const group = (bundle, keys) => (isGiveaway(bundle) ? keys : closestKeys(keys));
   const candidates = KNOWN_BUNDLES.map(bundle => {
-    const games = new Set(bundle.games.flatMap(nameForms));
-    const [from, to] = bundleWindow(bundle);
-    const keys = unlinked.filter(l => l.date >= from && l.date <= to && licenseForms(l).some(f => games.has(f)));
+    const keys = group(bundle, keysInBundle(bundle, unlinked, keyForms));
     return { bundle, keys, exact: keys.filter(l => withinDates(bundle, l)).length };
-  }).sort((a, b) => b.keys.length - a.keys.length || b.exact - a.exact);
+  }).filter(c => c.keys.length).sort((a, b) => b.keys.length - a.keys.length || b.exact - a.exact);
   const taken = new Set();
   const suggestions = [];
   for (const { bundle, keys } of candidates) {
-    const free = keys.filter(l => !taken.has(l));
+    const free = group(bundle, keys.filter(l => !taken.has(l)));
     if (free.length < (isGiveaway(bundle) ? 1 : 2)) continue;
     free.forEach(l => taken.add(l));
     suggestions.push({ bundle, keys: free });
@@ -222,7 +253,8 @@ function bundleSuggestions(unlinked) {
 }
 
 // Where one unlinked key may have been bought, for the purchase form:
-//  - bundles: KNOWN_BUNDLES it's a game from whose window (bundleWindow) it was activated in, giveaways included;
+//  - bundles: up to 5 KNOWN_BUNDLES it's a game from whose window (bundleWindow) it was activated in, giveaways
+//    included, the ones with the most other unlinked keys activated within BUNDLE_SPREAD_DAYS of it first;
 //  - packs: KNOWN_PACKAGES packs of 3+ games it's in. A pack normally arrives as one license, so a separate key for one
 //    of its games only points to it when the pack is a Humble Bundle or another unlinked key activated within a week
 //    is from it too (the pack was sold as separate keys);
@@ -231,22 +263,26 @@ function bundleSuggestions(unlinked) {
 function keySourceHints(license, unlinked) {
   const own = new Set(licenseForms(license));
   const hasThis = games => games.some(game => nameForms(game).some(f => own.has(f)));
-  const keysFrom = (games, from, to) => {
+  const near = days => unlinked.filter(l => l !== license && daysApart(l.date, license.date) <= days);
+  const keysFrom = (games, others) => {
     const set = new Set(games.flatMap(nameForms));
-    const others = unlinked.filter(l => l !== license && l.date >= from && l.date <= to && licenseForms(l).some(f => set.has(f)));
-    return [license, ...others];
+    return [license, ...others.filter(l => licenseForms(l).some(f => set.has(f)))];
   };
+  const nearby = near(BUNDLE_SPREAD_DAYS);
+  const nearbyForms = new Map(nearby.map(l => [l, licenseForms(l)]));
   const bundles = KNOWN_BUNDLES
     .filter(bundle => {
       const [from, to] = bundleWindow(bundle);
-      return license.date >= from && license.date <= to && hasThis(bundle.games);
+      return license.date >= from && license.date <= to && [...own].some(f => bundleForms(bundle).has(f));
     })
-    .sort((a, b) => withinDates(b, license) - withinDates(a, license))
-    .map(bundle => ({ ...bundle, keys: keysFrom(bundle.games, ...bundleWindow(bundle)) }));
+    .map(bundle => ({ ...bundle, keys: [license, ...keysInBundle(bundle, nearby, nearbyForms)] }))
+    .sort((a, b) => b.keys.length - a.keys.length || withinDates(b, license) - withinDates(a, license)
+      || b.date.localeCompare(a.date))
+    .slice(0, 5);
   const packs = KNOWN_PACKAGES
     .filter(([names, games]) => games.length >= 3 && !names.some(n => nameForms(n).some(f => own.has(f))) && hasThis(games))
     .map(([names, games]) => ({ name: names[0], store: /humble/i.test(names.join(' ')) ? 'Humble Bundle' : '', games,
-      keys: keysFrom(games, addDays(license.date, -7), addDays(license.date, 7)) }))
+      keys: keysFrom(games, near(7)) }))
     .filter(pack => pack.store || pack.keys.length > 1)
     .sort((a, b) => b.keys.length - a.keys.length)
     .slice(0, 3);
