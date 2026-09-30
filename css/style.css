@@ -58,8 +58,9 @@ a {
   border-bottom: 1px solid #000;
 }
 
+/* 1400px like the headphones banner, so the logo and codeman.club link sit in the same spot on every subdomain */
 .nav .in {
-  max-width: 1120px;
+  max-width: 1400px;
   margin: 0 auto;
   padding: 14px clamp(16px,4vw,32px);
   display: flex;
