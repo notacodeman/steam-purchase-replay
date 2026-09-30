@@ -10,6 +10,8 @@
 //  - games whose license has a different name (Kingdom Launch → Kingdom: Classic, H1Z1 → Z1 Battle Royale),
 //  - remasters and new versions Steam hands to owners of the original (BioShock → BioShock Remastered).
 // Licenses named after their game plus an edition ("Control Standard Edition") are matched without being listed here.
+// Entries that give one game also tie purchases and keys under the old name to it (makeNameMatcher in util.js), so the
+// game's price and playtime line up: MW2 bought on Steam or as a key is played as "Call of Duty".
 //
 // KNOWN_BUNDLES: bundles sold as separate keys (Humble Choice months, store bundles), and free key giveaways. When two
 // or more of a visitor's unlinked key activations are games from a bundle, it's suggested as the purchase they came
@@ -145,7 +147,8 @@ const KNOWN_PACKAGES = [
     ['Grand Theft Auto IV: The Complete Edition']],
   [['Battlefield REDSEC'], ['Battlefield 6']],
   [['Battlefield 1 Revolution'], ['Battlefield 1']],
-  [['Call of Duty: Warzone'], ['Call of Duty']],
+  // MW2's app (1938090) became the Call of Duty launcher; its playtime covers everything played through it
+  [['Call of Duty: Warzone', 'Call of Duty: Modern Warfare II'], ['Call of Duty']],
   [['TABG'], ['Totally Accurate Battlegrounds']],
   [['RecRoom'], ['Rec Room']],
   [['Tom Raider GOL'], ['Lara Croft and the Guardian of Light']],

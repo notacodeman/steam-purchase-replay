@@ -256,6 +256,19 @@ function makeNameMatcher(games) {
   }
   const longestFirst = [...byName.keys()].sort((a, b) => b.length - a.length);
 
+  // Games Steam renamed: the entries in data/known-packages.js that give one game. MW2's app became the Call of Duty
+  // launcher, so "Call of Duty: Modern Warfare II" is played as "Call of Duty".
+  const renamed = new Map();
+  for (const [names, gameNames] of typeof KNOWN_PACKAGES === 'undefined' ? [] : KNOWN_PACKAGES) {
+    const game = gameNames.length === 1 && byName.get(normalizeName(gameNames[0]));
+    if (!game) continue;
+    for (const name of names) {
+      const key = normalizeName(cleanLicenseName(name));
+      // "Star Wars Battlefront II (Classic, 2005)" loses its year and would take the name of the 2017 game
+      if (!byName.has(key)) renamed.set(key, game);
+    }
+  }
+
   const lookup = (name, allowAddon) => {
     const n = normalizeName(name);
     if (byName.has(n)) return byName.get(n);
@@ -266,6 +279,9 @@ function makeNameMatcher(games) {
       const endsWith = longestFirst.filter(k => k.endsWith(' ' + stripped));
       if (endsWith.length === 1) return byName.get(endsWith[0]);
     }
+    // "Call of Duty: Modern Warfare II Vault Edition" is Modern Warfare II
+    const renamedKey = looseNameKeys(n).find(k => renamed.has(k));
+    if (renamedKey) return renamed.get(renamedKey);
     if (allowAddon) {
       const base = longestFirst.find(k => k.length >= 4 && n.startsWith(k + ' ') && ADDON_WORDS.test(n.slice(k.length)));
       if (base) return byName.get(base);
