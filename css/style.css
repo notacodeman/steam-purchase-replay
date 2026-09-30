@@ -62,7 +62,7 @@ a {
 .nav .in {
   max-width: 1400px;
   margin: 0 auto;
-  padding: 14px clamp(16px,4vw,32px);
+  padding: 14px clamp(16px,3vw,32px);
   display: flex;
   align-items: center;
   gap: 22px;
