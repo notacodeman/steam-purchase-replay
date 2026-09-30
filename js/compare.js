@@ -127,8 +127,8 @@ function showComparison() {
     : `These accounts use different currencies (${sides[0].money.symbol} and ${sides[1].money.symbol}). Amounts are shown in each account's own currency and aren't converted, so money figures aren't compared with bars, and the year chart shows shares of each total.`;
   $('#cmpWarn').hidden = sameCurrency;
 
-  renderCompareHeader(sides);
-  renderCompareTable(sides, sameCurrency);
+  renderCompareHero(sides, sameCurrency);
+  renderCompareStats(sides, sameCurrency);
   renderCompareYears(sides, sameCurrency);
   renderCompareShares(sides);
   renderCommonGames(sides);
@@ -145,16 +145,29 @@ function closeComparison() {
 
 const swatch = k => `<i class="sw" style="background:${SIDE_COLORS[k]}"></i>`;
 
-function renderCompareHeader(sides) {
-  $('#cmpHead').innerHTML = sides.map((side, k) => {
-    const { history, licenses, playtime } = side;
-    const pages = ['purchase history', licenses && 'licenses', playtime && 'games page'].filter(Boolean);
-    return `<div class="cmpcard" style="--c:${SIDE_COLORS[k]}">
-      <b>${escapeHtml(side.name)}</b>
-      <span>${formatDate(history.first)} – ${formatDate(history.last)}</span>
-      <span>From ${pages.join(', ')}. Amounts in ${escapeHtml(side.money.symbol)}.</span>
+// The two names, their dates and headline totals facing each other, with a bar splitting the combined total.
+function renderCompareHero(sides, sameCurrency) {
+  const totals = sides.map(steamSpend);
+  const card = (side, k) => {
+    const keys = side.keys.orders ? `<span class="sub">+ ${escapeHtml(inCurrency(side.money, () => formatMoneyWhole(side.keys.total)))} on keys from other stores</span>` : '';
+    return `<div class="hside${k ? " right" : ""}" style="--c:${SIDE_COLORS[k]}">
+      <b class="hname">${escapeHtml(side.name)}</b>
+      <span class="sub">${formatDate(side.history.first)} – ${formatDate(side.history.last)}</span>
+      <span class="hbig">${escapeHtml(inCurrency(side.money, () => formatMoneyWhole(totals[k])))}</span>
+      <span class="sub">on Steam games, DLC, gifts and items</span>${keys}
     </div>`;
-  }).join('');
+  };
+  let split = '';
+  if (sameCurrency && totals[0] + totals[1] > 0) {
+    const share = totals[0] / (totals[0] + totals[1]) * 100;
+    const [more, less] = totals[0] >= totals[1] ? [0, 1] : [1, 0];
+    const verdict = totals[less] > 0 && totals[more] / totals[less] >= 1.005
+      ? `${escapeHtml(sides[more].name)} spent ${Math.round((totals[more] / totals[less] - 1) * 100)}% more on Steam.`
+      : 'Almost exactly the same spent on Steam.';
+    split = `<div class="hsplit" aria-hidden="true"><i style="width:${share.toFixed(1)}%;background:${SIDE_COLORS[0]}"></i><i style="background:${SIDE_COLORS[1]}"></i></div>
+      <p class="hverdict">${verdict}</p>`;
+  }
+  $('#cmpHero').innerHTML = `${card(sides[0], 0)}<span class="hvs">vs</span>${card(sides[1], 1)}${split}`;
 }
 
 // ---------- side by side figures ----------
@@ -163,38 +176,41 @@ function renderCompareHeader(sides) {
 const steamSpend = side => side.history.totals.net - side.history.totals.hardware;
 const yearsOnRecord = side => (new Date(side.history.last) - new Date(side.history.first)) / (365.25 * 864e5);
 
-// Each row: the group it's in, a label, a note under the label, the figure for a side (null when that report doesn't
-// have it), and how it's written: money, cents (money with cents), count, percent or hours. Rows that are empty or
-// zero on both sides are left out.
+// Each row: the group it's in, a label, the figure for a side (null when that report doesn't have it), and how it's
+// written: money, cents (money with cents), count, percent or hours. Rows that are empty or zero on both sides are
+// left out.
 const COMPARE_ROWS = [
-  ['Spending', 'Spent on Steam', 'Games, DLC, gifts and items, after refunds', steamSpend, 'money'],
-  ['Spending', 'Keys from other stores', '3rd-party purchases added to the report', s => s.keys.orders ? s.keys.total : null, 'money'],
-  ['Spending', 'Per year', 'Steam spending over the years on record', s => yearsOnRecord(s) >= 1 ? steamSpend(s) / yearsOnRecord(s) : null, 'money'],
-  ['Spending', 'Store items bought', 'Games, DLC and soundtracks for themselves', s => s.history.totals.itemsMine, 'count'],
-  ['Spending', 'Gift copies sent', '', s => s.history.totals.giftBought, 'count'],
-  ['Spending', 'In-game items', 'Spent inside games, after refunds', s => s.history.catTotals[CATEGORY.inGame], 'money'],
-  ['Spending', 'Market items bought', '', s => s.history.totals.marketBuyCount, 'count'],
-  ['Spending', 'Refunds', '', s => s.history.totals.refundCount, 'count'],
-  ['Spending', 'Hardware', 'Kept out of the other figures', s => s.history.totals.hardware, 'money'],
-  ['Sales', 'Saved on sales', 'List price minus what was paid', s => s.history.totals.saved, 'money'],
-  ['Sales', 'Checkouts on sale', '', s => s.history.totals.storeTx ? s.history.totals.saleTx / s.history.totals.storeTx * 100 : null, 'percent'],
-  ['Sales', 'Average discount', 'On checkouts that were on sale', s => s.history.totals.avgDiscount, 'percent'],
-  ['Sales', 'Spent during seasonal sales', 'Share of games, DLC and gifts', s => {
+  ['Spending', 'Spent on Steam, after refunds', steamSpend, 'money'],
+  ['Spending', 'Keys from other stores', s => s.keys.orders ? s.keys.total : null, 'money'],
+  ['Spending', 'Spent per year', s => yearsOnRecord(s) >= 1 ? steamSpend(s) / yearsOnRecord(s) : null, 'money'],
+  ['Spending', 'Games and DLC bought for themselves', s => s.history.totals.itemsMine, 'count'],
+  ['Spending', 'Gift copies sent', s => s.history.totals.giftBought, 'count'],
+  ['Spending', 'Spent on in-game items', s => s.history.catTotals[CATEGORY.inGame], 'money'],
+  ['Spending', 'Market items bought', s => s.history.totals.marketBuyCount, 'count'],
+  ['Spending', 'Refunds', s => s.history.totals.refundCount, 'count'],
+  ['Spending', 'Hardware (not in the totals)', s => s.history.totals.hardware, 'money'],
+  ['Sales', 'Saved by buying on sale', s => s.history.totals.saved, 'money'],
+  ['Sales', 'Checkouts on sale', s => s.history.totals.storeTx ? s.history.totals.saleTx / s.history.totals.storeTx * 100 : null, 'percent'],
+  ['Sales', 'Average discount when on sale', s => s.history.totals.avgDiscount, 'percent'],
+  ['Sales', 'Spent during Steam\'s seasonal sales', s => {
     const timing = s.history.saleTiming;
     return timing.total ? (1 - timing.by.None / timing.total) * 100 : null;
   }, 'percent'],
-  ['Licenses', 'Licenses', 'Everything on the account', s => s.licenses && s.licenses.totals.all, 'count'],
-  ['Licenses', 'Bought on Steam', '', s => s.licenses && s.licenses.totals.store, 'count'],
-  ['Licenses', 'Product keys activated', '', s => s.licenses && s.licenses.totals.key, 'count'],
-  ['Licenses', 'Free', '', s => s.licenses && s.licenses.totals.free, 'count'],
-  ['Licenses', 'Gifts received', '', s => s.licenses && s.licenses.totals.gift, 'count'],
-  ['Games and playtime', 'Games owned', '', s => s.playtime && s.playtime.games, 'count'],
-  ['Games and playtime', 'Hours played', '', s => s.playtime && s.playtime.hours, 'hours'],
-  ['Games and playtime', 'Never played', 'Share of games owned', s => s.playtime && s.playtime.games ? s.playtime.never / s.playtime.games * 100 : null, 'percent'],
-  ['Games and playtime', 'Backlog', 'Spent on games never played', s => s.playtime && s.playtime.backlog.total, 'money'],
-  ['Games and playtime', 'Spent per hour played', 'Steam spending over hours played', s => s.playtime && s.playtime.hours >= 1 ? steamSpend(s) / s.playtime.hours : null, 'cents'],
-  ['Games and playtime', 'Perfect games', 'Every achievement unlocked', s => s.playtime && s.playtime.perfect, 'count'],
+  ['Games and playtime', 'Games owned', s => s.playtime && s.playtime.games, 'count'],
+  ['Games and playtime', 'Hours played', s => s.playtime && s.playtime.hours, 'hours'],
+  ['Games and playtime', 'Games never played', s => s.playtime && s.playtime.games ? s.playtime.never / s.playtime.games * 100 : null, 'percent'],
+  ['Games and playtime', 'Spent on games never played', s => s.playtime && s.playtime.backlog.total, 'money'],
+  ['Games and playtime', 'Spent per hour played', s => s.playtime && s.playtime.hours >= 1 ? steamSpend(s) / s.playtime.hours : null, 'cents'],
+  ['Games and playtime', 'Games with every achievement', s => s.playtime && s.playtime.perfect, 'count'],
+  ['Licenses', 'Licenses on the account', s => s.licenses && s.licenses.totals.all, 'count'],
+  ['Licenses', 'Bought on Steam', s => s.licenses && s.licenses.totals.store, 'count'],
+  ['Licenses', 'Product keys activated', s => s.licenses && s.licenses.totals.key, 'count'],
+  ['Licenses', 'Free', s => s.licenses && s.licenses.totals.free, 'count'],
+  ['Licenses', 'Gifts received', s => s.licenses && s.licenses.totals.gift, 'count'],
 ];
+
+// The groups' panels, left column then right, so the two columns end up about the same height.
+const COMPARE_COLUMNS = [['Spending', 'Sales'], ['Games and playtime', 'Licenses']];
 
 // What a group needs, for the note when one side doesn't have it.
 const GROUP_NEEDS = { Licenses: ['licenses', 'licenses pages'], 'Games and playtime': ['playtime', 'games page'] };
@@ -206,35 +222,31 @@ function formatFigure(side, value, kind) {
   return Math.round(value).toLocaleString();
 }
 
-function renderCompareTable(sides, sameCurrency) {
-  $('#cmpTotalsHead').innerHTML = `<div role="columnheader"></div>` +
-    sides.map((side, k) => `<div role="columnheader" class="r">${swatch(k)}<span class="full">${escapeHtml(side.name)}</span>` +
-      `<span class="short" aria-hidden="true">${escapeHtml(side.short)}</span></div>`).join('');
-  let group = null;
-  const html = [];
-  for (const [rowGroup, label, note, figure, kind] of COMPARE_ROWS) {
-    const values = sides.map(side => {
-      const v = figure(side);
-      return v == null || !isFinite(v) ? null : v;
-    });
-    if (values.every(v => v == null || Math.abs(v) < HALF_CENT)) continue;
-    if (rowGroup !== group) {
-      group = rowGroup;
-      const need = GROUP_NEEDS[group];
-      const missing = need ? sides.filter(side => !side[need[0]]).map(side => side.name) : [];
-      const missingNote = missing.length ? `<span>No ${need[1]} in ${missing.map(escapeHtml).join("'s or ")}'s report</span>` : '';
-      html.push(`<div class="tr cmpgrp" role="row"><div role="cell">${group}${missingNote}</div></div>`);
-    }
-    const barred = kind !== 'money' && kind !== 'cents' || sameCurrency;
-    const most = Math.max(...values.map(v => Math.max(0, v || 0)));
-    const cells = values.map((v, k) => {
-      if (v == null) return `<div role="cell" class="cv none">—</div>`;
-      const bar = barred && most > 0 ? `<span class="cbar"><i style="width:${(Math.max(0, v) / most * 100).toFixed(1)}%;background:${SIDE_COLORS[k]}"></i></span>` : '';
-      return `<div role="cell" class="cv"><b>${escapeHtml(formatFigure(sides[k], v, kind))}</b>${bar}</div>`;
+// One panel per group, each row a label over two bars growing out from the middle, the figures at either end.
+function renderCompareStats(sides, sameCurrency) {
+  const panel = group => {
+    const rows = COMPARE_ROWS.filter(row => row[0] === group).map(([, label, figure, kind]) => {
+      const values = sides.map(side => {
+        const v = figure(side);
+        return v == null || !isFinite(v) ? null : v;
+      });
+      if (values.every(v => v == null || Math.abs(v) < HALF_CENT)) return '';
+      const barred = kind !== 'money' && kind !== 'cents' || sameCurrency;
+      const most = Math.max(...values.map(v => Math.max(0, v || 0)));
+      const value = k => values[k] == null
+        ? '<span class="dv none">—</span>'
+        : `<span class="dv${values[k] === most && values[1 - k] !== most ? ' lead' : ''}">${escapeHtml(formatFigure(sides[k], values[k], kind))}</span>`;
+      const bar = k => `<span class="dbar"><i style="width:${barred && most > 0 && values[k] ? (Math.max(0, values[k]) / most * 100).toFixed(1) : 0}%;background:${SIDE_COLORS[k]}"></i></span>`;
+      return `<div class="duel">${value(0)}<div class="dmid"><span class="dl">${label}</span><div class="dbars">${bar(0)}${bar(1)}</div></div>${value(1)}</div>`;
     }).join('');
-    html.push(`<div class="tr cmpr" role="row"><div role="cell" class="cl">${label}${note ? `<span>${note}</span>` : ''}</div>${cells}</div>`);
-  }
-  $('#cmpRows').innerHTML = html.join('');
+    if (!rows) return '';
+    const need = GROUP_NEEDS[group];
+    const missing = need ? sides.filter(side => !side[need[0]]).map(side => escapeHtml(side.name) + "'s") : [];
+    const note = missing.length ? `<p class="kpct">No ${need[1]} in ${missing.join(' or ')} report.</p>` : '';
+    return `<div class="panel"><h3>${group}</h3>${note}${rows}</div>`;
+  };
+  const legend = `<div class="dlegend">${sides.map((side, k) => `<span>${swatch(k)}${escapeHtml(side.name)}</span>`).join('')}</div>`;
+  $('#cmpGroups').innerHTML = legend + COMPARE_COLUMNS.map(groups => `<div class="cmpcol">${groups.map(panel).join('')}</div>`).join('');
 }
 
 // ---------- year by year ----------
