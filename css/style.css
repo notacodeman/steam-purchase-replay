@@ -2909,7 +2909,7 @@ footer a:hover {
   margin-bottom: 12px;
 }
 
-/* head to head: a label over two bars growing out from the middle, the figures at either end */
+/* head to head: a label over one bar per account, the figure after each bar */
 .cmpgroups {
   display: grid;
   grid-template-columns: repeat(2,minmax(0,1fr));
@@ -2925,18 +2925,16 @@ footer a:hover {
 .dlegend {
   grid-column: 1 / -1;
   display: flex;
-  justify-content: space-between;
-  gap: 16px;
+  flex-wrap: wrap;
+  gap: 6px 16px;
   font-weight: 600;
   color: #dcdedf;
 }
 
 .duel {
   display: grid;
-  grid-template-columns: 5.5em minmax(0,1fr) 5.5em;
-  gap: 12px;
-  align-items: end;
-  padding: 7px 0;
+  gap: 4px;
+  padding: 9px 0;
   border-top: 1px solid rgba(255,255,255,.04);
 }
 
@@ -2944,43 +2942,18 @@ footer a:hover {
   border-top: 0;
 }
 
-.dv {
-  color: var(--muted);
-  font-weight: 600;
-  white-space: nowrap;
-  line-height: 1.2;
-}
-
-.duel .dv:last-child {
-  text-align: right;
-}
-
-.dv.lead {
-  color: var(--ink);
-  font-weight: 700;
-}
-
-.dv.none {
-  color: var(--dim);
-}
-
-.dmid {
-  display: grid;
-  gap: 5px;
-  min-width: 0;
-}
-
 .dl {
   color: #dcdedf;
-  font-size: .92rem;
-  text-align: center;
-  line-height: 1.25;
+  font-size: .94rem;
+  margin-bottom: 2px;
 }
 
-.dbars {
+/* the figure column is fixed so the bars line up */
+.dline {
   display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 3px;
+  grid-template-columns: minmax(0,1fr) 6.5em;
+  gap: 12px;
+  align-items: center;
 }
 
 .dbar {
@@ -2990,14 +2963,26 @@ footer a:hover {
   background: rgba(255,255,255,.05);
 }
 
-/* the left bar grows leftwards from the middle */
-.dbar:first-child {
-  justify-content: flex-end;
-}
-
 .dbar i {
   height: 100%;
   border-radius: 1px;
+}
+
+.dv {
+  color: var(--muted);
+  font-weight: 600;
+  font-size: .92rem;
+  text-align: right;
+  white-space: nowrap;
+}
+
+.dv.lead {
+  color: var(--ink);
+  font-weight: 700;
+}
+
+.dv.none {
+  color: var(--dim);
 }
 
 @media (max-width:820px) {
@@ -3098,9 +3083,8 @@ footer a:hover {
   .hvs {
     display: none;
   }
-  .duel {
-    grid-template-columns: 4.6em minmax(0,1fr) 4.6em;
-    gap: 8px;
+  .dline {
+    grid-template-columns: minmax(0,1fr) 5.5em;
   }
   .cshare-r {
     grid-template-columns: minmax(0,1fr) 3.2em 5.5em;

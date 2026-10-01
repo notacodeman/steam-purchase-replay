@@ -222,7 +222,7 @@ function formatFigure(side, value, kind) {
   return Math.round(value).toLocaleString();
 }
 
-// One panel per group, each row a label over two bars growing out from the middle, the figures at either end.
+// One panel per group. Each figure is a label over one bar per account, the bars scaled to the bigger figure.
 function renderCompareStats(sides, sameCurrency) {
   const panel = group => {
     const rows = COMPARE_ROWS.filter(row => row[0] === group).map(([, label, figure, kind]) => {
@@ -233,11 +233,14 @@ function renderCompareStats(sides, sameCurrency) {
       if (values.every(v => v == null || Math.abs(v) < HALF_CENT)) return '';
       const barred = kind !== 'money' && kind !== 'cents' || sameCurrency;
       const most = Math.max(...values.map(v => Math.max(0, v || 0)));
-      const value = k => values[k] == null
-        ? '<span class="dv none">—</span>'
-        : `<span class="dv${values[k] === most && values[1 - k] !== most ? ' lead' : ''}">${escapeHtml(formatFigure(sides[k], values[k], kind))}</span>`;
-      const bar = k => `<span class="dbar"><i style="width:${barred && most > 0 && values[k] ? (Math.max(0, values[k]) / most * 100).toFixed(1) : 0}%;background:${SIDE_COLORS[k]}"></i></span>`;
-      return `<div class="duel">${value(0)}<div class="dmid"><span class="dl">${label}</span><div class="dbars">${bar(0)}${bar(1)}</div></div>${value(1)}</div>`;
+      const line = k => {
+        const width = barred && most > 0 && values[k] ? (Math.max(0, values[k]) / most * 100).toFixed(1) : 0;
+        const figureText = values[k] == null ? '—' : escapeHtml(formatFigure(sides[k], values[k], kind));
+        const lead = values[k] != null && values[k] === most && values[1 - k] !== most ? ' lead' : '';
+        return `<div class="dline"><span class="dbar"><i style="width:${width}%;background:${SIDE_COLORS[k]}"></i></span>` +
+          `<span class="dv${lead}${values[k] == null ? ' none' : ''}">${figureText}</span></div>`;
+      };
+      return `<div class="duel"><span class="dl">${label}</span>${line(0)}${line(1)}</div>`;
     }).join('');
     if (!rows) return '';
     const need = GROUP_NEEDS[group];
